@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelog bulletedList="true">
+
+    <changelogversion versionName="1.0 RC3" changeDate="22 July 2026">
+        <changelogtext>Fixed user_files on Secondary storage</changelogtext>
+        <changelogtext>Fixed digital move actions for UE1 and UT99</changelogtext>
+        <changelogtext>Removed unused files in assets</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="1.0 RC2" changeDate="21 July 2026">
+        <changelogtext>Added FOV setting to engine options</changelogtext>
+        <changelogtext>Fix bug loading level in UE1</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="1.0 RC1" changeDate="20 July 2026">
+        <changelogtext>Unreal Engine</changelogtext>
+        <changelogtext>Unreal Tournament 99 Engine</changelogtext>
+    </changelogversion>
+
+</changelog>

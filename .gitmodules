@@ -1,0 +1,27 @@
+[submodule "AndroidCore_OpenTouch"]
+	path = AndroidCore_OpenTouch
+	url = https://github.com/emileb/AndroidCore_OpenTouch.git
+[submodule "SAFFAL"]
+	path = SAFFAL
+	url = https://github.com/emileb/SAFFAL.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/AudioLibs_OpenTouch"]
+	path = SigmaTouch/sigmatouch/src/main/jni/AudioLibs_OpenTouch
+	url = https://github.com/emileb/AudioLibs_OpenTouch.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/Clibs_OpenTouch"]
+	path = SigmaTouch/sigmatouch/src/main/jni/Clibs_OpenTouch
+	url = https://github.com/emileb/Clibs_OpenTouch.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/gl4es"]
+	path = SigmaTouch/sigmatouch/src/main/jni/gl4es
+	url = https://github.com/emileb/gl4es.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/MobileTouchControls"]
+	path = SigmaTouch/sigmatouch/src/main/jni/MobileTouchControls
+	url = https://github.com/emileb/MobileTouchControls.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/SDL2_OpenTouch"]
+	path = SigmaTouch/sigmatouch/src/main/jni/SDL2_OpenTouch
+	url = https://github.com/emileb/SDL2_OpenTouch.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/Games/Unreal/src/main/jni/UE1"]
+	path = SigmaTouch/sigmatouch/src/main/jni/Games/Unreal/src/main/jni/UE1
+	url = https://github.com/emileb/UE1.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/Games/UT99/src/main/jni/ut99dc"]
+	path = SigmaTouch/sigmatouch/src/main/jni/Games/UT99/src/main/jni/ut99dc
+	url = https://github.com/emileb/ut99dc.git

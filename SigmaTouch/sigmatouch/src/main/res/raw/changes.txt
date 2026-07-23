@@ -1,0 +1,6 @@
+
+BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
+
+Fixed user_files on Secondary storage
+Fixed digital move actions for UE1 and UT99
+Removed unused files in assets

@@ -1,0 +1,54 @@
+pluginManagement {
+    repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+include  ':sigmatouch'
+
+include ':androidcore'
+project(':androidcore').projectDir = new File(settingsDir, "/../AndroidCore_OpenTouch/androidcore")
+
+include ':changeloglib'
+project(':changeloglib').projectDir = new File(settingsDir, "/../AndroidCore_OpenTouch/ChangeLogLibrary")
+
+include ':saffal'
+project(':saffal').projectDir = new File(settingsDir, "/../SAFFAL/saffal")
+
+include ':oboe'
+project(':oboe').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/AudioLibs_OpenTouch/oboe")
+
+include ':openal'
+project(':openal').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/AudioLibs_OpenTouch/openal-soft")
+
+include ':fluidsynth'
+project(':fluidsynth').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/AudioLibs_OpenTouch/fluidsynth")
+
+include ':libxmp'
+project(':libxmp').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/AudioLibs_OpenTouch/libxmp")
+
+include ':Unreal'
+project(':Unreal').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/Unreal")
+
+include ':UT99'
+project(':UT99').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/UT99")

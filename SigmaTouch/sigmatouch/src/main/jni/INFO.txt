@@ -1,0 +1,3 @@
+cd /Users/emilebelanger/Library/Android/sdk/ndk/25.2.9519653/simpleperf
+
+ python3 app_profiler.py -p com.opentouchgaming.sigmatouch -lib /Users/emilebelanger/Android/AndroidStudioProjects/Sigma_Touch/SigmaTouch/sigmatouch/src/main/obj/local/arm64-v8a
