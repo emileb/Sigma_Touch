@@ -46,8 +46,8 @@
         </LinearLayout>
 
         <include
-            android:id="@+id/gamepad_config_spinner"
-            layout="@layout/widget_view_gamepad_config" />
+            android:id="@+id/dodge_cooldown_switch"
+            layout="@layout/widget_view_switch" />
 
         <include
             android:id="@+id/volumetric_lighting_switch"
@@ -68,6 +68,10 @@
         <include
             android:id="@+id/detail_textures_switch"
             layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/gamepad_config_spinner"
+            layout="@layout/widget_view_gamepad_config" />
 
         <include
             android:id="@+id/delete_data_button"

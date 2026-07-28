@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="1.1" changeDate="28 July 2026">
+        <changelogtext>Added 'dodge' arrows for UE1 and UT99 + configurable max dodge rate</changelogtext>
+        <changelogtext>Added Voice commands touch button for UT99</changelogtext>
+        <changelogtext>Fixed map loading for UT99</changelogtext>
+        <changelogtext>Fixed additive lighting causing render errors</changelogtext>
+        <changelogtext>Fixed UT99 logging</changelogtext>
+    </changelogversion>
+
+    <changelogversion versionName="1.0.1" changeDate="24 July 2026">
+        <changelogtext>Fix UT99 on 32bit ARM</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="1.0 RC3" changeDate="22 July 2026">
         <changelogtext>Fixed user_files on Secondary storage</changelogtext>
         <changelogtext>Fixed digital move actions for UE1 and UT99</changelogtext>

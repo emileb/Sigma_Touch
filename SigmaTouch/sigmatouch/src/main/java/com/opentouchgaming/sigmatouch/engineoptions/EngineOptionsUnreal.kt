@@ -48,6 +48,12 @@ class EngineOptionsUnreal : EngineOptionsInterface
     val FOV_MAX = 120
     val FOV_DEFAULT = 90
 
+    // Vanilla blocks a new dodge until 0.35s after the previous one lands (and
+    // kills the landing velocity). Off by default - unrestricted dodging is far
+    // more useful with the touch dodge buttons than with a double-tap.
+    val DODGE_COOLDOWN_PREFIX = "unreal_dodge_cooldown"
+    val DODGE_COOLDOWN_DEFAULT = false
+
     val VOLUMETRIC_LIGHTING_PREFIX = "unreal_volumetric_lighting"
     val SHINY_SURFACES_PREFIX = "unreal_shiny_surfaces"
     val CORONAS_PREFIX = "unreal_coronas"
@@ -102,18 +108,21 @@ class EngineOptionsUnreal : EngineOptionsInterface
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
-        GamepadConfigWidget(activity, binding.gamepadConfigSpinner.root, GAMEPAD_CONFIG_KEY)
+        SwitchWidget(activity, binding.dodgeCooldownSwitch.root, "Dodge cooldown", "Original delay between dodges (off: dodge freely)",
+            DODGE_COOLDOWN_PREFIX, DODGE_COOLDOWN_DEFAULT)
 
         SwitchWidget(activity, binding.volumetricLightingSwitch.root, "Volumetric lighting", "Fog around dynamic lights",
-            VOLUMETRIC_LIGHTING_PREFIX, RENDER_TOGGLE_DEFAULT)
+            VOLUMETRIC_LIGHTING_PREFIX, RENDER_TOGGLE_DEFAULT, R.drawable.setting_gpu)
         SwitchWidget(activity, binding.shinySurfacesSwitch.root, "Shiny surfaces", "Reflective/translucent surface effects",
-            SHINY_SURFACES_PREFIX, RENDER_TOGGLE_DEFAULT)
+            SHINY_SURFACES_PREFIX, RENDER_TOGGLE_DEFAULT, R.drawable.setting_gpu)
         SwitchWidget(activity, binding.coronasSwitch.root, "Coronas", "Light flares around bright light sources",
-            CORONAS_PREFIX, RENDER_TOGGLE_DEFAULT)
+            CORONAS_PREFIX, RENDER_TOGGLE_DEFAULT, R.drawable.setting_gpu)
         SwitchWidget(activity, binding.highDetailActorsSwitch.root, "High detail actors", "Higher detail models for players/monsters",
-            HIGH_DETAIL_ACTORS_PREFIX, RENDER_TOGGLE_DEFAULT)
+            HIGH_DETAIL_ACTORS_PREFIX, RENDER_TOGGLE_DEFAULT, R.drawable.setting_gpu)
         SwitchWidget(activity, binding.detailTexturesSwitch.root, "Detail textures", "Extra close-up texture detail",
-            DETAIL_TEXTURES_PREFIX, RENDER_TOGGLE_DEFAULT)
+            DETAIL_TEXTURES_PREFIX, RENDER_TOGGLE_DEFAULT, R.drawable.setting_gpu)
+
+        GamepadConfigWidget(activity, binding.gamepadConfigSpinner.root, GAMEPAD_CONFIG_KEY)
 
         DeleteDataWidget(
             activity, binding.deleteDataButton.root,
@@ -146,6 +155,9 @@ class EngineOptionsUnreal : EngineOptionsInterface
         info.args += " -FOV=$fov "
 
         info.gamepadConfig = GamepadConfigWidget.fetchValue(AppInfo.getContext(), GAMEPAD_CONFIG_KEY)
+
+        // Dodge rate limit - parsed in mobile/game_interface.cpp.
+        info.args += " -DodgeCooldown=" + SwitchWidget.fetchValue(AppInfo.getContext(), DODGE_COOLDOWN_PREFIX, DODGE_COOLDOWN_DEFAULT)
 
         // Render-quality toggles - parsed in NOpenGLESDrv::Init, overriding the
         // ini-loaded (engine-default-true) values.
