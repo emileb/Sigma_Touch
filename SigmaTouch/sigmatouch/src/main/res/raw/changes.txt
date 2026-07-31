@@ -1,6 +1,13 @@
 
 BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
 
+
+v1.
+* Fixed console height for UE1
+* Fixed console height for UT99
+* Fixed collision hash for UE1 and UT99
+
+v1.1
 * Added 'dodge' arrows for UE1 and UT99 + configurable max dodge rate
 * Added Voice commands touch button for UT99
 * Fixed map loading for UT99
