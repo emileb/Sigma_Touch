@@ -45,6 +45,33 @@
 
         </LinearLayout>
 
+        <!-- Host tick rate (30..120), passed to the engine via -MaxTickRate= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tick_rate_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="150dp"
+                android:text="Multiplayer tick rate: 60"
+                android:textSize="16dp" />
+
+            <SeekBar
+                android:id="@+id/tick_rate_slider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:max="9" />
+
+        </LinearLayout>
+
         <include
             android:id="@+id/dodge_cooldown_switch"
             layout="@layout/widget_view_switch" />

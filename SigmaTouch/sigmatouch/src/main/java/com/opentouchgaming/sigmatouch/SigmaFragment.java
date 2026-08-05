@@ -30,6 +30,8 @@ public class SigmaFragment extends MainFragment
 
     UT99Launcher ut99Launcher;
 
+    AVPLauncher avpLauncher;
+
     public SigmaFragment()
     {
         super();
@@ -45,6 +47,7 @@ public class SigmaFragment extends MainFragment
 
         ue1Launcher = new UE1Launcher();
         ut99Launcher = new UT99Launcher();
+        avpLauncher = new AVPLauncher();
     }
 
     public void setLauncher()
@@ -56,6 +59,9 @@ public class SigmaFragment extends MainFragment
                 break;
             case UNREAL_TOURNAMENT:
                 launcher = ut99Launcher;
+                break;
+            case AVP:
+                launcher = avpLauncher;
                 break;
         }
     }
@@ -88,14 +94,31 @@ public class SigmaFragment extends MainFragment
         args += runInfo.args + " ";
         args += argsFinal;
 
-        // Create Intent
-        Intent intent = new Intent(getActivity(), org.libsdl.app2012.SDLActivity.class);
+        // Create Intent. AVP is an SDL3 engine (app3000); the UE1-family ones are SDL2.
+        Intent intent;
+
+        if (runInfo.sdlVersion == 3)
+        {
+            intent = new Intent(getActivity(), org.libsdl.app3000.SDLActivity.class);
+        }
+        else
+        {
+            intent = new Intent(getActivity(), org.libsdl.app2012.SDLActivity.class);
+        }
+
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
         intent.putExtra("load_libs", engine.loadLibs[selectedVersion]);
         intent.putExtra("log_filename", engine.getLogFilename());
-        intent.putExtra("game_path", rootPath + "/System");
+
+        // The UE1-family engines run out of their own System/ subfolder; AVP's
+        // data sits directly in the game folder.
+        if (engine.engine == GameEngine.Engine.AVP)
+            intent.putExtra("game_path", rootPath);
+        else
+            intent.putExtra("game_path", rootPath + "/System");
+
         intent.putExtra("args", args);
 
         Pair<String, String> quickCommandPaths = launcher.getQuickCommandsDirectory(selectedSubGame);

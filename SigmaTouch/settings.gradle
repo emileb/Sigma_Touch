@@ -52,3 +52,6 @@ project(':Unreal').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/
 
 include ':UT99'
 project(':UT99').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/UT99")
+
+include ':AVP'
+project(':AVP').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/AVP")

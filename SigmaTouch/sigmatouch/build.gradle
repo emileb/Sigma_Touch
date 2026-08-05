@@ -15,8 +15,8 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 35
-        versionCode 7
-        versionName "1.1"
+        versionCode 8
+        versionName "1.2"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled true
@@ -75,6 +75,7 @@ dependencies {
 
     implementation(project(":Unreal"))
     implementation(project(":UT99"))
+    implementation(project(":AVP"))
 
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'com.google.code.gson:gson:2.13.2'

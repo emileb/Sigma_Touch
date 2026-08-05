@@ -2,7 +2,8 @@ TOP_DIR := $(call my-dir)
 LOCAL_PATH := $(call my-dir)
 
 
-SDL3_ENABLED=0
+# AVP (NakedAVP) is an SDL3 engine, so libSDL3.so is built alongside SDL2.
+SDL3_ENABLED=1
 
 include $(TOP_DIR)/SDL2_OpenTouch/Android.mk
 include $(TOP_DIR)/Clibs_OpenTouch/Android.mk

@@ -2,6 +2,7 @@ package com.opentouchgaming.sigmatouch.engineoptions
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.Context
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.arch.core.util.Function
@@ -48,6 +49,16 @@ class EngineOptionsUnreal : EngineOptionsInterface
     val FOV_MAX = 120
     val FOV_DEFAULT = 90
 
+    // Hosting a game (botmatch = listen server) makes MainLoop() sleep to the net
+    // driver's MaxTicksPerSecond, which caps frame rate, not just replication - the
+    // ini ships 35. Passed via -MaxTickRate=, applied in UGameEngine::GetMaxTickRate.
+    // SeekBar is 0..9 (min SDK 19 has no android:min), so value = MIN + progress*STEP.
+    val TICK_RATE_PREFIX = "unreal_tick_rate"
+    val TICK_RATE_MIN = 30
+    val TICK_RATE_STEP = 10
+    val TICK_RATE_MAX = 120
+    val TICK_RATE_DEFAULT = 60
+
     // Vanilla blocks a new dodge until 0.35s after the previous one lands (and
     // kills the landing velocity). Off by default - unrestricted dodging is far
     // more useful with the touch dodge buttons than with a double-tap.
@@ -72,6 +83,13 @@ class EngineOptionsUnreal : EngineOptionsInterface
 
         val iniFile: File
             get() = FileSAF(AppInfo.getUserFiles() + "/$INI_DIR_NAME", INI_FILENAME)
+    }
+
+    // Snapped to a SeekBar step so a stale saved value still lands on a tick.
+    private fun tickRateSetting(context: Context): Int
+    {
+        val raw = AppSettings.getIntOption(context, TICK_RATE_PREFIX, TICK_RATE_DEFAULT).coerceIn(TICK_RATE_MIN, TICK_RATE_MAX)
+        return TICK_RATE_MIN + ((raw - TICK_RATE_MIN) / TICK_RATE_STEP) * TICK_RATE_STEP
     }
 
     override fun showDialog(activity: Activity, engine: GameEngine, version: Int, update: Function<Int, Void>)
@@ -103,6 +121,22 @@ class EngineOptionsUnreal : EngineOptionsInterface
                 val deg = FOV_MIN + progress
                 binding.fovValue.text = fovLabel(deg)
                 AppSettings.setIntOption(activity, FOV_PREFIX, deg)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+
+        // Host tick rate. Snapped to TICK_RATE_STEP so the SeekBar stays coarse.
+        val tickRate = tickRateSetting(activity)
+        binding.tickRateSlider.progress = (tickRate - TICK_RATE_MIN) / TICK_RATE_STEP
+        binding.tickRateValue.text = "Multiplayer tick rate: $tickRate"
+        binding.tickRateSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener
+        {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean)
+            {
+                val rate = TICK_RATE_MIN + progress * TICK_RATE_STEP
+                binding.tickRateValue.text = "Multiplayer tick rate: $rate"
+                AppSettings.setIntOption(activity, TICK_RATE_PREFIX, rate)
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
@@ -155,6 +189,10 @@ class EngineOptionsUnreal : EngineOptionsInterface
         info.args += " -FOV=$fov "
 
         info.gamepadConfig = GamepadConfigWidget.fetchValue(AppInfo.getContext(), GAMEPAD_CONFIG_KEY)
+
+        // Host tick rate - parsed in UGameEngine::GetMaxTickRate, overriding the
+        // ini's MaxTicksPerSecond. Only applies while hosting; ignored otherwise.
+        info.args += " -MaxTickRate=" + tickRateSetting(AppInfo.getContext())
 
         // Dodge rate limit - parsed in mobile/game_interface.cpp.
         info.args += " -DodgeCooldown=" + SwitchWidget.fetchValue(AppInfo.getContext(), DODGE_COOLDOWN_PREFIX, DODGE_COOLDOWN_DEFAULT)

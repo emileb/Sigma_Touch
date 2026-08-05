@@ -2,7 +2,10 @@
 BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
 
 
-v1.
+v1.2
+* Added 'Alien vs Predator' engine (NakedAVP)
+* Added tick-rate setting for UE1 multiplayer
+* Fixed botmatch for UE1
 * Fixed console height for UE1
 * Fixed console height for UT99
 * Fixed collision hash for UE1 and UT99

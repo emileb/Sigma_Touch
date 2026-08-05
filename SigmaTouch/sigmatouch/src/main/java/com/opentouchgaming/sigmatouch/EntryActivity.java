@@ -31,6 +31,7 @@ import com.opentouchgaming.androidcore.ui.ScopedStorageFirstTimeDialog;
 import com.opentouchgaming.androidcore.ui.StorageConfigDialog;
 import com.opentouchgaming.androidcore.ui.UserFilesDialog;
 import com.opentouchgaming.androidcore.ui.tutorial.Tutorial;
+import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsAVP;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUT99;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUnreal;
 
@@ -118,6 +119,21 @@ public class EntryActivity extends FragmentActivity
                                0x00B18A0B,
                                0,
                                EngineOptionsUT99.class),
+
+                new GameEngine(GameEngine.Engine.AVP,
+                               0,
+                               "Aliens vs Predator",
+                               "avp",
+                               "",
+                               new String[]{"dev"},
+                               new String[][]{{"oboe", "openal-soft", "GL4ES", "avp"}},
+                               "",
+                               GamepadDefinitions.getDefinition(AppInfo.Apps.SIGMA_TOUCH),
+                               R.drawable.avp_icon, // TODO: placeholder art, replace with real AvP art
+                               0,
+                               0x00207020,
+                               0,
+                               EngineOptionsAVP.class),
         };
 
         List<StorageConfigDialog.StorageExamples> examples = new ArrayList<>();
@@ -137,7 +153,12 @@ public class EntryActivity extends FragmentActivity
 
         AppInfo.scopedTutorial = scopedTutorial;
 
+        // Per-engine dirs first, then the shared ones. The paths are the
+        // engine's own user_files subfolder (EngineOptions*.INI_DIR_NAME).
         AppInfo.userFilesEntries = new UserFilesDialog.UserFileEntryDescription[]{
+                new UserFilesDialog.UserFileEntryDescription("Unreal", "dev", R.drawable.unreal_icon, "unreal"),
+                new UserFilesDialog.UserFileEntryDescription("Unreal Tournament", "dev", R.drawable.ut99_icon, "ut99"),
+                new UserFilesDialog.UserFileEntryDescription("Aliens vs Predator", "dev", R.drawable.avp_icon, "avp"),
                 new UserFilesDialog.UserFileEntryDescription("Mod setups", "", R.drawable.ic_baseline_file_copy, "loadouts"),
                 new UserFilesDialog.UserFileEntryDescription("Gamepad setups", "", R.drawable.ic_baseline_file_copy, "gamepad"),
                 new UserFilesDialog.UserFileEntryDescription("Touch layouts", "", R.drawable.ic_baseline_file_copy, "touch_layouts"),

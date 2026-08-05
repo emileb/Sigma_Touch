@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+
+    <changelogversion versionName="1.2" changeDate="5 August 2026">
+        <changelogtext>Added 'Alien vs Predator' engine (NakedAVP)</changelogtext>
+        <changelogtext>Added tick-rate setting for UE1 multiplayer</changelogtext>
+        <changelogtext>Fixed botmatch for UE1</changelogtext>
+        <changelogtext>Fixed console height for UE1</changelogtext>
+        <changelogtext>Fixed console height for UT99</changelogtext>
+        <changelogtext>Fixed collision hash for UE1 and UT99</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="1.1" changeDate="28 July 2026">
         <changelogtext>Added 'dodge' arrows for UE1 and UT99 + configurable max dodge rate</changelogtext>
         <changelogtext>Added Voice commands touch button for UT99</changelogtext>

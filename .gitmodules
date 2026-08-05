@@ -25,3 +25,6 @@
 [submodule "SigmaTouch/sigmatouch/src/main/jni/Games/UT99/src/main/jni/ut99dc"]
 	path = SigmaTouch/sigmatouch/src/main/jni/Games/UT99/src/main/jni/ut99dc
 	url = https://github.com/emileb/ut99dc.git
+[submodule "SigmaTouch/sigmatouch/src/main/jni/Games/AVP/src/main/jni/NakedAVP"]
+	path = SigmaTouch/sigmatouch/src/main/jni/Games/AVP/src/main/jni/NakedAVP
+	url = git@github.com:emileb/NakedAVP.git

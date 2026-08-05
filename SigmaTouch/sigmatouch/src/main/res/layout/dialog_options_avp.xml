@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_border_color"
+    android:padding="5sp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical">
+
+        <include
+            android:id="@+id/gl_resolution"
+            layout="@layout/widget_view_resolution_select" />
+
+        <!-- Menu/HUD size, passed to the engine via -u (shrinks the virtual screen) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/ui_scale_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="150dp"
+                android:text="Menu/HUD size: 1.0x"
+                android:textSize="16dp" />
+
+            <SeekBar
+                android:id="@+id/ui_scale_slider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:max="12" />
+
+        </LinearLayout>
+
+        <include
+            android:id="@+id/gamepad_config_spinner"
+            layout="@layout/widget_view_gamepad_config" />
+
+        <include
+            android:id="@+id/delete_data_button"
+            layout="@layout/widget_view_delete_data" />
+
+    </LinearLayout>
+</ScrollView>
