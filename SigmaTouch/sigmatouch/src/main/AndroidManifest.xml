@@ -33,6 +33,8 @@
         android:theme="@style/AppTheme"
         tools:replace="android:label,android:supportsRtl">
 
+        <profileable android:shell="true"/>
+
         <provider
             android:name="com.opentouchgaming.androidcore.OpenTouchDocumentProvider"
             android:authorities="${applicationId}.user"

@@ -32,6 +32,8 @@ public class SigmaFragment extends MainFragment
 
     AVPLauncher avpLauncher;
 
+    Quake4Launcher quake4Launcher;
+
     public SigmaFragment()
     {
         super();
@@ -48,6 +50,7 @@ public class SigmaFragment extends MainFragment
         ue1Launcher = new UE1Launcher();
         ut99Launcher = new UT99Launcher();
         avpLauncher = new AVPLauncher();
+        quake4Launcher = new Quake4Launcher();
     }
 
     public void setLauncher()
@@ -62,6 +65,9 @@ public class SigmaFragment extends MainFragment
                 break;
             case AVP:
                 launcher = avpLauncher;
+                break;
+            case QUAKE4:
+                launcher = quake4Launcher;
                 break;
         }
     }
@@ -94,7 +100,7 @@ public class SigmaFragment extends MainFragment
         args += runInfo.args + " ";
         args += argsFinal;
 
-        // Create Intent. AVP is an SDL3 engine (app3000); the UE1-family ones are SDL2.
+        // Create Intent. AVP and Quake 4 are SDL3 engines (app3000); the UE1-family ones are SDL2.
         Intent intent;
 
         if (runInfo.sdlVersion == 3)
@@ -113,8 +119,8 @@ public class SigmaFragment extends MainFragment
         intent.putExtra("log_filename", engine.getLogFilename());
 
         // The UE1-family engines run out of their own System/ subfolder; AVP's
-        // data sits directly in the game folder.
-        if (engine.engine == GameEngine.Engine.AVP)
+        // and Quake 4's data sits directly in the game folder.
+        if (engine.engine == GameEngine.Engine.AVP || engine.engine == GameEngine.Engine.QUAKE4)
             intent.putExtra("game_path", rootPath);
         else
             intent.putExtra("game_path", rootPath + "/System");

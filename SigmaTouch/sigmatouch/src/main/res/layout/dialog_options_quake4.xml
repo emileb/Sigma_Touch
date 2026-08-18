@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_border_color"
+    android:padding="5sp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical">
+
+        <include
+            android:id="@+id/gl_resolution"
+            layout="@layout/widget_view_resolution_select" />
+
+        <include
+            android:id="@+id/screen_fraction_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
+            android:id="@+id/picmip_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
+            android:id="@+id/texture_compression_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
+            android:id="@+id/shadows_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/specular_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/bump_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/ambient_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/present_scene_target_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/release_sample_payload_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/fps_cap_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
+            android:id="@+id/vsync_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/mouse_smooth_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
+            android:id="@+id/show_fps_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/gamepad_config_spinner"
+            layout="@layout/widget_view_gamepad_config" />
+
+        <include
+            android:id="@+id/delete_data_button"
+            layout="@layout/widget_view_delete_data" />
+
+    </LinearLayout>
+</ScrollView>

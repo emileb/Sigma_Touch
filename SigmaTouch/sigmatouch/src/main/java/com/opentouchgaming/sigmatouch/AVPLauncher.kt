@@ -34,7 +34,7 @@ class AVPLauncher : GameLauncherInterface
         // lowercase paths and Android storage is case sensitive.
         SubGame.addGame(availableSubGames, runDirectory, secondaryDirectory, SUB_DIR, "", 0, WEAPON_WHEEL_NBR,
                 arrayOf("avp_huds/alien.rif", "avp_rifs/temple.rif", "fastfile"), R.drawable.avp_icon, "Aliens vs Predator",
-                "Copy your (lowercased) AvP Gold folders (avp_huds, avp_rifs, fastfile, graphics, sound) to: ",
+                "Copy your (lowercased) AvP Gold folders (avp_huds, avp_rifs, fastfile, FMVs, Text) to: ",
                 "Put your Aliens vs Predator folders here.txt")
 
         for (game in availableSubGames)

@@ -32,10 +32,12 @@ import com.opentouchgaming.androidcore.ui.StorageConfigDialog;
 import com.opentouchgaming.androidcore.ui.UserFilesDialog;
 import com.opentouchgaming.androidcore.ui.tutorial.Tutorial;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsAVP;
+import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUT99;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUnreal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -136,6 +138,33 @@ public class EntryActivity extends FragmentActivity
                                EngineOptionsAVP.class),
         };
 
+        // Quake 4 is behind the includeQuake4 Gradle switch (see gradle.properties).
+        // With it off the module, its .so files and its assets are not in the APK, so
+        // the engine must not be offered either.
+        if (BuildConfig.INCLUDE_QUAKE4)
+        {
+            List<GameEngine> engines = new ArrayList<>(Arrays.asList(AppInfo.gameEngines));
+
+            engines.add(new GameEngine(GameEngine.Engine.QUAKE4,
+                                       0,
+                                       "Quake 4",
+                                       "quake4",
+                                       "",
+                                       new String[]{"dev"},
+                                       // libquake4.so dlopen()s librenderer-gles_arm64.so and
+                                       // libgame-sp_arm64.so itself, so they are not listed here.
+                                       new String[][]{{"oboe", "openal-soft", "quake4"}},
+                                       "",
+                                       GamepadDefinitions.getDefinition(AppInfo.Apps.SIGMA_TOUCH),
+                                       R.drawable.quake4_icon,
+                                       0,
+                                       0x00B05010,
+                                       0,
+                                       EngineOptionsQuake4.class));
+
+            AppInfo.gameEngines = engines.toArray(new GameEngine[0]);
+        }
+
         List<StorageConfigDialog.StorageExamples> examples = new ArrayList<>();
         examples.add(new StorageConfigDialog.StorageExamples("User files", "(config, saves etc):", StorageConfigDialog.PathLocation.PRIM, "/user_files"));
 
@@ -155,14 +184,21 @@ public class EntryActivity extends FragmentActivity
 
         // Per-engine dirs first, then the shared ones. The paths are the
         // engine's own user_files subfolder (EngineOptions*.INI_DIR_NAME).
-        AppInfo.userFilesEntries = new UserFilesDialog.UserFileEntryDescription[]{
-                new UserFilesDialog.UserFileEntryDescription("Unreal", "dev", R.drawable.unreal_icon, "unreal"),
-                new UserFilesDialog.UserFileEntryDescription("Unreal Tournament", "dev", R.drawable.ut99_icon, "ut99"),
-                new UserFilesDialog.UserFileEntryDescription("Aliens vs Predator", "dev", R.drawable.avp_icon, "avp"),
-                new UserFilesDialog.UserFileEntryDescription("Mod setups", "", R.drawable.ic_baseline_file_copy, "loadouts"),
-                new UserFilesDialog.UserFileEntryDescription("Gamepad setups", "", R.drawable.ic_baseline_file_copy, "gamepad"),
-                new UserFilesDialog.UserFileEntryDescription("Touch layouts", "", R.drawable.ic_baseline_file_copy, "touch_layouts"),
-                new UserFilesDialog.UserFileEntryDescription("Quick cmds", "", R.drawable.ic_baseline_file_copy, "QC")};
+        List<UserFilesDialog.UserFileEntryDescription> userFiles = new ArrayList<>();
+
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Unreal", "dev", R.drawable.unreal_icon, "unreal"));
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Unreal Tournament", "dev", R.drawable.ut99_icon, "ut99"));
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Aliens vs Predator", "dev", R.drawable.avp_icon, "avp"));
+
+        if (BuildConfig.INCLUDE_QUAKE4)
+            userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quake 4", "dev", R.drawable.quake4_icon, "quake4"));
+
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Mod setups", "", R.drawable.ic_baseline_file_copy, "loadouts"));
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Gamepad setups", "", R.drawable.ic_baseline_file_copy, "gamepad"));
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Touch layouts", "", R.drawable.ic_baseline_file_copy, "touch_layouts"));
+        userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quick cmds", "", R.drawable.ic_baseline_file_copy, "QC"));
+
+        AppInfo.userFilesEntries = userFiles.toArray(new UserFilesDialog.UserFileEntryDescription[0]);
     }
 
     final int REQUEST_EXTERNAL_STROAGE = 1;

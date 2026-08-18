@@ -2,7 +2,7 @@
 <changelog bulletedList="true">
 
 
-    <changelogversion versionName="1.2" changeDate="5 August 2026">
+    <changelogversion versionName="1.2" changeDate="17 August 2026">
         <changelogtext>Added 'Alien vs Predator' engine (NakedAVP)</changelogtext>
         <changelogtext>Added tick-rate setting for UE1 multiplayer</changelogtext>
         <changelogtext>Fixed botmatch for UE1</changelogtext>

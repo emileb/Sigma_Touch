@@ -55,3 +55,10 @@ project(':UT99').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Ga
 
 include ':AVP'
 project(':AVP').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/AVP")
+
+// See gradle.properties. Left out entirely when off, so a release build never
+// even configures its CMake.
+if (providers.gradleProperty('includeQuake4').getOrElse('true').toBoolean()) {
+    include ':Quake4'
+    project(':Quake4').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/Quake4")
+}

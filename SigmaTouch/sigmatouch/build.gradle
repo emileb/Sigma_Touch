@@ -2,6 +2,10 @@ apply plugin: 'com.android.application'
 //apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
+// See gradle.properties. Drops the whole engine: module, .so files, staged
+// baseoq4 assets, and (via BuildConfig) its entry in the launcher.
+def includeQuake4 = (project.findProperty('includeQuake4') ?: 'true').toBoolean()
+
 android {
     ndkVersion '24.0.8215888'
     namespace 'com.opentouchgaming.sigmatouch'
@@ -15,11 +19,13 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 35
-        versionCode 8
+        versionCode 10
         versionName "1.2"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled true
+
+        buildConfigField "boolean", "INCLUDE_QUAKE4", "${includeQuake4}"
     }
 
     compileOptions {
@@ -76,6 +82,7 @@ dependencies {
     implementation(project(":Unreal"))
     implementation(project(":UT99"))
     implementation(project(":AVP"))
+    if (includeQuake4) implementation(project(":Quake4"))
 
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'com.google.code.gson:gson:2.13.2'

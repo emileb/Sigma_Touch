@@ -36,7 +36,21 @@ Run from `SigmaTouch/`:
 ./gradlew installDebug         # Build + install on connected device
 ./gradlew clean
 ./gradlew :Unreal:assembleDebug -PabiOverride=arm64-v8a   # One engine, one ABI (fast iteration)
+./gradlew assembleRelease -PincludeQuake4=false            # Ship without the unfinished Quake 4
 ```
+
+### Leaving an engine out of a release: `includeQuake4`
+
+`includeQuake4` (declared in `SigmaTouch/gradle.properties`, default `true`) is the switch for shipping while Quake 4 is unfinished. Set it to `false` there, or pass `-PincludeQuake4=false`, and the APK loses the `:Quake4` dependency (so `libquake4.so` and the two modules it `dlopen()`s are never built or packaged), the staged `baseoq4` assets, and Quake 4's entries in the engine list and the user-files dialog.
+
+Four pieces make that work, and any future engine needing the same treatment should copy them:
+
+- `settings.gradle` only `include`s `:Quake4` when the property is on, so a release never configures its CMake at all.
+- `sigmatouch/build.gradle` reads the property once, guards `implementation(project(":Quake4"))` with it, and exposes it as `BuildConfig.INCLUDE_QUAKE4`.
+- `EntryActivity` appends the `GameEngine` entry and the `UserFileEntryDescription` inside `if (BuildConfig.INCLUDE_QUAKE4)`. Everything else in the app module (`Quake4Launcher`, `EngineOptionsQuake4`, the drawables) compiles and ships either way — harmless, and it keeps the switch to one guard per list.
+- The engine's staged pk4/`mod.json` assets live in **`Games/Quake4/src/main/assets/quake4/`**, not the app's own assets. AGP merges a library module's assets into the APK, so they leave with the dependency instead of needing a separate exclusion.
+
+Verify a flip with `mergeDebugAssets` / `mergeDebugNativeLibs` and look at `sigmatouch/build/intermediates/` rather than unpacking an APK.
 
 Command-line builds need a JDK ≤ 21 — the system default may be newer and breaks Gradle 8.13 ("Unsupported class file major version"). Use Android Studio's JBR: `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew ...`
 
@@ -72,14 +86,16 @@ Each engine's detailed notes — every Android-specific patch, the reasoning beh
 | Unreal (UE1 v200) | `:Unreal` | `/OpenTouch/Sigma/UE1` | Verified running on-device — menu, gameplay, audio, resolution, HUD scale all working | [`docs/engines/ue1.md`](docs/engines/ue1.md) |
 | Unreal Tournament (UE1 v400) | `:UT99` | `/OpenTouch/Sigma/UT99` | Phase 2 well advanced — boots, mouse-navigable menu, audio, gameplay input implemented | [`docs/engines/ut99.md`](docs/engines/ut99.md) |
 | Aliens vs Predator (NakedAVP) | `:AVP` | `/OpenTouch/Sigma/AVP` | Phase 2 — runs on-device (primary storage), menus and gameplay input working, Smacker plot FMVs and Bink intros/outros/menu-backdrop/music implemented | [`docs/engines/avp.md`](docs/engines/avp.md) |
+| Quake 4 (openQ4) | `:Quake4` | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input still Phase 1. **Behind the `includeQuake4` build switch** — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
 
 Key facts that affect work outside any single engine:
 
 - **`:Unreal` and `:UT99` are deliberately separate engines.** They are different UE1 generations (package versions 61–67 vs 68) and their content is mutually incompatible, so neither can load the other's data.
-- **`:AVP` is the only SDL3 engine**; everything else is SDL2. `RunInfo.sdlVersion` picks the SDL activity (`org.libsdl.app3000` vs `app2012`) in `SigmaFragment.launchGame()`, and `jni/Android.mk` sets `SDL3_ENABLED=1` to build `libSDL3.so` alongside SDL2.
+- **`:AVP` and `:Quake4` are the SDL3 engines**; the UE1-family ones are SDL2. `RunInfo.sdlVersion` picks the SDL activity (`org.libsdl.app3000` vs `app2012`) in `SigmaFragment.launchGame()`, and `jni/Android.mk` sets `SDL3_ENABLED=1` to build `libSDL3.so` alongside SDL2.
+- **`:Quake4` is the only arm64-only engine, and the only one that ships more than one `.so`.** It builds `libquake4.so` plus two modules the engine `dlopen()`s at runtime (`librenderer-gles_arm64.so`, `libgame-sp_arm64.so`), mirroring openQ4's own desktop layout. It is also the only engine whose source of truth is Meson — its Android `CMakeLists.txt` reuses openQ4's own source-list scripts so the two builds cannot drift. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
 - **`:AVP` is the only engine using gl4es**; the two UE1-family engines have real GLES renderers of their own.
 - **`:AVP` is the only engine linking the shared FFmpeg prebuilts** (`Clibs_OpenTouch/ffmpeg`, static + PIC), for Bink video/audio. Those prebuilts are shared with q2repro in Delta/Quad Touch, so rebuilding them affects those apps too — see [`docs/engines/avp.md`](docs/engines/avp.md) for the recipe.
-- All three engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`); AVP's is the SSH remote `git@github.com:emileb/NakedAVP.git` and sits on the `mobile_main` branch.
+- Engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`, `openQ4`); AVP's and openQ4's are SSH remotes. openQ4's Android work sits on its `android` branch, and its companion game-library repo `openQ4-game` is a second submodule tracking `themuffinator/openQ4-game` unmodified.
 
 ### Storage
 
