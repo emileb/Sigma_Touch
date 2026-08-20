@@ -15,51 +15,71 @@
         android:orientation="vertical">
 
         <include
-            android:id="@+id/gl_resolution"
-            layout="@layout/widget_view_resolution_select" />
-
-        <include
-            android:id="@+id/screen_fraction_spinner"
-            layout="@layout/widget_view_spinner" />
-
-        <include
-            android:id="@+id/picmip_spinner"
-            layout="@layout/widget_view_spinner" />
-
-        <include
-            android:id="@+id/texture_compression_spinner"
-            layout="@layout/widget_view_spinner" />
-
-        <include
-            android:id="@+id/shadows_switch"
+            android:id="@+id/graphics_settings_switch"
             layout="@layout/widget_view_switch" />
 
-        <include
-            android:id="@+id/specular_switch"
-            layout="@layout/widget_view_switch" />
+        <!-- Everything the master switch sends to the engine -->
+        <LinearLayout
+            android:id="@+id/graphics_settings_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/options_group_box"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingBottom="8dp"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical">
 
-        <include
-            android:id="@+id/bump_switch"
-            layout="@layout/widget_view_switch" />
+            <include
+                android:id="@+id/screen_fraction_spinner"
+                layout="@layout/widget_view_spinner" />
 
-        <include
-            android:id="@+id/ambient_switch"
-            layout="@layout/widget_view_switch" />
+            <include
+                android:id="@+id/picmip_spinner"
+                layout="@layout/widget_view_spinner" />
 
-        <include
-            android:id="@+id/present_scene_target_switch"
-            layout="@layout/widget_view_switch" />
+            <include
+                android:id="@+id/texture_compression_spinner"
+                layout="@layout/widget_view_spinner" />
+
+            <include
+                android:id="@+id/shadows_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/specular_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/bump_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/ambient_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/present_scene_target_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/fps_cap_spinner"
+                layout="@layout/widget_view_spinner" />
+
+            <include
+                android:id="@+id/vsync_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/show_fps_switch"
+                layout="@layout/widget_view_switch" />
+
+        </LinearLayout>
 
         <include
             android:id="@+id/release_sample_payload_switch"
-            layout="@layout/widget_view_switch" />
-
-        <include
-            android:id="@+id/fps_cap_spinner"
-            layout="@layout/widget_view_spinner" />
-
-        <include
-            android:id="@+id/vsync_switch"
             layout="@layout/widget_view_switch" />
 
         <include
@@ -67,7 +87,7 @@
             layout="@layout/widget_view_spinner" />
 
         <include
-            android:id="@+id/show_fps_switch"
+            android:id="@+id/validate_paks_switch"
             layout="@layout/widget_view_switch" />
 
         <include

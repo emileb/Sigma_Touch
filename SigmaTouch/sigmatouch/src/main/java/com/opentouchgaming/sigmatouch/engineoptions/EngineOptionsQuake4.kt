@@ -13,7 +13,6 @@ import com.opentouchgaming.androidcore.EngineOptionsInterface.RunInfo
 import com.opentouchgaming.androidcore.GameEngine
 import com.opentouchgaming.androidcore.ui.widgets.DeleteDataWidget
 import com.opentouchgaming.androidcore.ui.widgets.GamepadConfigWidget
-import com.opentouchgaming.androidcore.ui.widgets.ResolutionOptionsWidget
 import com.opentouchgaming.androidcore.ui.widgets.SpinnerWidget
 import com.opentouchgaming.androidcore.ui.widgets.SwitchWidget
 import com.opentouchgaming.saffal.FileSAF
@@ -28,8 +27,6 @@ class EngineOptionsQuake4 : EngineOptionsInterface
     lateinit var binding: DialogOptionsQuake4Binding
 
     lateinit var dialog: Dialog
-
-    lateinit var resolutionOptionsWidget: ResolutionOptionsWidget
 
     val PREFIX = "quake4"
 
@@ -46,7 +43,19 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         dialog.setCanceledOnTouchOutside(true)
         dialog.setCancelable(true)
 
-        resolutionOptionsWidget = ResolutionOptionsWidget(activity, binding.glResolution.root, PREFIX)
+        val graphicsSwitch = SwitchWidget(
+            activity, binding.graphicsSettingsSwitch.root, "Use these graphics settings",
+            "Enable/Disable seting gfx settings in command line",
+            GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT, R.drawable.setting_gpu
+        )
+
+        // Set before the dialog is shown, so the initial state does not animate
+        binding.graphicsSettingsGroup.visibility =
+            if (SwitchWidget.fetchValue(activity, GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT)) View.VISIBLE else View.GONE
+
+        graphicsSwitch.callback = { enabled ->
+            binding.graphicsSettingsGroup.visibility = if (enabled) View.VISIBLE else View.GONE
+        }
 
         val fractionItems = SCREEN_FRACTIONS.map { Pair<String, View?>("$it%", null) }.toTypedArray()
         SpinnerWidget(
@@ -65,7 +74,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         val compressionItems = TEXTURE_COMPRESSION_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.textureCompressionSpinner.root, "Texture compression",
-            "Only affects devices whose GPU cannot read Quake 4's own compressed textures, where every texture would otherwise be stored at full 32-bit size. Cuts texture memory by about two thirds. No effect on devices that can, so it is safe to leave on.",
+            "No effect on devices that can use DDS, so it is safe to leave on.",
             compressionItems, TEXTURE_COMPRESSION_PREFIX, TEXTURE_COMPRESSION_DEFAULT, R.drawable.setting_gpu
         )
 
@@ -89,7 +98,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         SwitchWidget(
             activity, binding.ambientSwitch.root, "Ambient pass",
-            "Draw non-interaction surfaces. Off is very fast but unlit surfaces disappear - a debug view more than a setting.",
+            "Draw non-interaction surfaces.",
             AMBIENT_PREFIX, AMBIENT_DEFAULT, R.drawable.setting_lightbulb
         )
 
@@ -101,7 +110,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         SwitchWidget(
             activity, binding.releaseSamplePayloadSwitch.root, "Free duplicate sound memory",
-            "The audio system keeps its own copy of every sound, so the engine drops its one. Saves around 170MB. Turn off if a sound goes missing.",
+            "The audio system keeps its own copy of every sound, so the engine drops its one. Saves around 170MB.",
             RELEASE_SAMPLE_PAYLOAD_PREFIX, RELEASE_SAMPLE_PAYLOAD_DEFAULT, R.drawable.setting_audio
         )
 
@@ -114,7 +123,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         SwitchWidget(
             activity, binding.vsyncSwitch.root, "VSync",
-            "Pace presentation to the display. With a 60 cap on a 120Hz screen this is an exact 2:1.",
+            "Pace presentation to the display.",
             VSYNC_PREFIX, VSYNC_DEFAULT, R.drawable.setting_gpu
         )
 
@@ -131,6 +140,12 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT, R.drawable.setting_gear
         )
 
+        SwitchWidget(
+            activity, binding.validatePaksSwitch.root, "Check game files",
+            "Verify the retail q4base pk4 checksums and openQ4's own pak0/pak1 at startup.",
+            VALIDATE_PAKS_PREFIX, VALIDATE_PAKS_DEFAULT, R.drawable.setting_gear
+        )
+
         GamepadConfigWidget(activity, binding.gamepadConfigSpinner.root, GAMEPAD_CONFIG_KEY)
 
         DeleteDataWidget(
@@ -138,8 +153,6 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             "Delete all Quake 4 settings files?", arrayOf("/$USER_DIR_NAME/"), arrayOf(),
             "", arrayOf(""), arrayOf("")
         )
-
-        dialog.setOnDismissListener { resolutionOptionsWidget.save() }
 
         dialog.show()
     }
@@ -149,6 +162,13 @@ class EngineOptionsQuake4 : EngineOptionsInterface
     companion object
     {
         const val USER_DIR_NAME = "quake4"
+
+        // Master switch for the whole graphics block. Off, none of those cvars
+        // are put on the command line, which is the only way to let
+        // Quake4Config.cfg and the in-game menus keep their own values - every
+        // one of them is CVAR_ARCHIVE, so a startup +set always wins.
+        const val GRAPHICS_SETTINGS_PREFIX = "quake4_graphics_settings"
+        const val GRAPHICS_SETTINGS_DEFAULT = true
 
         // openQ4's picmip cvar is image_picmip, not the Quake 3 spelling it
         // mirrors. Spinner position is the mip shift, so index == cvar value.
@@ -266,6 +286,13 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         const val SHOW_FPS_PREFIX = "quake4_show_fps"
         const val SHOW_FPS_DEFAULT = false
 
+        // fs_validateOfficialPaks covers both pak sets: the retail q4base
+        // checksums and the md5s of openQ4's own pak0/pak1. Those md5s are baked
+        // into the engine at build time, so a stale pair left in user_files by an
+        // older install is fatal until this is turned off.
+        const val VALIDATE_PAKS_PREFIX = "quake4_validate_paks"
+        const val VALIDATE_PAKS_DEFAULT = true
+
         val userDir: FileSAF
             get() = FileSAF(AppInfo.getUserFiles(), USER_DIR_NAME)
 
@@ -288,14 +315,9 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         // openQ4 is an SDL3 engine, so it needs the app3000 SDL activity.
         info.sdlVersion = 3
 
-        // Framebuffer scaler resolution, handled by the Android SDL layer. The
-        // engine takes its own render size from the surface it is handed, so
-        // this is the only resolution control for now - a real r_customWidth /
-        // r_customHeight override is Phase 2.
-        val res = ResolutionOptionsWidget.getResOption(PREFIX)
-        info.frameBufferWidth = res.w
-        info.frameBufferHeight = res.h
-        info.maintainAspect = res.maintainAspect
+        // No framebuffer scaler: leaving frameBufferWidth/Height null keeps the
+        // engine on the full surface. r_screenFraction scales the 3D view
+        // instead, which leaves the HUD and menus sharp.
 
         // Must be non-null: SigmaFragment concatenates runInfo.args into the
         // command line, and a null here becomes the literal string "null".
@@ -315,61 +337,70 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         // would put it in fs_savepath next to the config and saves.
         info.args += " +set fs_cachepath \"${AppInfo.cacheFiles}\" "
 
-        // Texture detail. Every cvar below is CVAR_ARCHIVE, so all of them are
-        // sent at every level -- including the "leave it alone" values at level
-        // 0 -- rather than only the ones that reduce something. Omitting one
-        // would let a stale Quake4Config.cfg keep a reduction the spinner says
-        // is off, and the setting would look broken until the config was wiped.
-        val picmip = SpinnerWidget.fetchValue(ctx, PICMIP_PREFIX, PICMIP_DEFAULT)
-            .coerceIn(0, PICMIP_LABELS.size - 1)
-        info.args += " +set image_picmip $picmip "
-        info.args += " +set image_picmipFilter $PICMIP_FILTER_ALL "
-        info.args += " +set image_picmipMinSize $PICMIP_MIN_SIZE "
+        // Every graphics cvar in one block, so the master switch can leave the
+        // whole lot off the command line and hand the engine's own config back
+        // its say. Anything outside it is not a graphics setting.
+        if (SwitchWidget.fetchValue(ctx, GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT))
+        {
+            // Texture detail. Every cvar below is CVAR_ARCHIVE, so all of them are
+            // sent at every level -- including the "leave it alone" values at level
+            // 0 -- rather than only the ones that reduce something. Omitting one
+            // would let a stale Quake4Config.cfg keep a reduction the spinner says
+            // is off, and the setting would look broken until the config was wiped.
+            val picmip = SpinnerWidget.fetchValue(ctx, PICMIP_PREFIX, PICMIP_DEFAULT)
+                .coerceIn(0, PICMIP_LABELS.size - 1)
+            info.args += " +set image_picmip $picmip "
+            info.args += " +set image_picmipFilter $PICMIP_FILTER_ALL "
+            info.args += " +set image_picmipMinSize $PICMIP_MIN_SIZE "
 
-        val bumpLimit = PICMIP_BUMP_LIMITS[picmip]
-        info.args += " +set image_downSizeBump ${if (bumpLimit > 0) 1 else 0} "
-        info.args += " +set image_downSizeBumpLimit $bumpLimit "
+            val bumpLimit = PICMIP_BUMP_LIMITS[picmip]
+            info.args += " +set image_downSizeBump ${if (bumpLimit > 0) 1 else 0} "
+            info.args += " +set image_downSizeBumpLimit $bumpLimit "
 
-        val specularLimit = PICMIP_SPECULAR_LIMITS[picmip]
-        info.args += " +set image_downSizeSpecular ${if (specularLimit > 0) 1 else 0} "
-        info.args += " +set image_downSizeSpecularLimit $specularLimit "
+            val specularLimit = PICMIP_SPECULAR_LIMITS[picmip]
+            info.args += " +set image_downSizeSpecular ${if (specularLimit > 0) 1 else 0} "
+            info.args += " +set image_downSizeSpecularLimit $specularLimit "
 
-        // Held off deliberately; see the note on the limit tables above.
-        info.args += " +set image_downSize 0 "
-        info.args += " +set image_downSizeLimit 0 "
+            // Held off deliberately; see the note on the limit tables above.
+            info.args += " +set image_downSize 0 "
+            info.args += " +set image_downSizeLimit 0 "
 
-        val fractionIndex = SpinnerWidget.fetchValue(ctx, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT)
-            .coerceIn(0, SCREEN_FRACTIONS.size - 1)
-        info.args += " +set r_screenFraction ${SCREEN_FRACTIONS[fractionIndex]} "
+            val fractionIndex = SpinnerWidget.fetchValue(ctx, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT)
+                .coerceIn(0, SCREEN_FRACTIONS.size - 1)
+            info.args += " +set r_screenFraction ${SCREEN_FRACTIONS[fractionIndex]} "
 
-        info.args += " +set r_shadows ${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)} "
+            info.args += " +set r_shadows ${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)} "
 
-        // The switches are "is this drawn", the cvars are "skip it".
-        info.args += " +set r_skipSpecular ${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)} "
-        info.args += " +set r_skipBump ${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)} "
-        info.args += " +set r_skipAmbient ${invBit(ctx, AMBIENT_PREFIX, AMBIENT_DEFAULT)} "
-        info.args += " +set r_glesD3PresentSceneTarget ${bit(ctx, PRESENT_SCENE_TARGET_PREFIX, PRESENT_SCENE_TARGET_DEFAULT)} "
+            // The switches are "is this drawn", the cvars are "skip it".
+            info.args += " +set r_skipSpecular ${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)} "
+            info.args += " +set r_skipBump ${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)} "
+            info.args += " +set r_skipAmbient ${invBit(ctx, AMBIENT_PREFIX, AMBIENT_DEFAULT)} "
+            info.args += " +set r_glesD3PresentSceneTarget ${bit(ctx, PRESENT_SCENE_TARGET_PREFIX, PRESENT_SCENE_TARGET_DEFAULT)} "
+
+            val fpsIndex = SpinnerWidget.fetchValue(ctx, FPS_CAP_PREFIX, FPS_CAP_DEFAULT)
+                .coerceIn(0, FPS_CAPS.size - 1)
+            info.args += " +set com_maxfps ${FPS_CAPS[fpsIndex]} "
+
+            info.args += " +set r_swapInterval ${bit(ctx, VSYNC_PREFIX, VSYNC_DEFAULT)} "
+
+            info.args += " +set com_showFPS ${bit(ctx, SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT)} "
+
+            // Sent at every position for the same reason as the texture detail cvars
+            // above: image_useETC2 is CVAR_ARCHIVE, so leaving it out at level 0
+            // would let a stale config keep compressing.
+            val compression = SpinnerWidget.fetchValue(ctx, TEXTURE_COMPRESSION_PREFIX, TEXTURE_COMPRESSION_DEFAULT)
+                .coerceIn(0, TEXTURE_COMPRESSION_LABELS.size - 1)
+            info.args += " +set image_useETC2 $compression "
+        }
 
         info.args += " +set s_releaseSamplePayload ${bit(ctx, RELEASE_SAMPLE_PAYLOAD_PREFIX, RELEASE_SAMPLE_PAYLOAD_DEFAULT)} "
-
-        val fpsIndex = SpinnerWidget.fetchValue(ctx, FPS_CAP_PREFIX, FPS_CAP_DEFAULT)
-            .coerceIn(0, FPS_CAPS.size - 1)
-        info.args += " +set com_maxfps ${FPS_CAPS[fpsIndex]} "
-
-        info.args += " +set r_swapInterval ${bit(ctx, VSYNC_PREFIX, VSYNC_DEFAULT)} "
 
         val smoothIndex = SpinnerWidget.fetchValue(ctx, MOUSE_SMOOTH_PREFIX, MOUSE_SMOOTH_DEFAULT)
             .coerceIn(0, MOUSE_SMOOTH_LABELS.size - 1)
         info.args += " +set m_smooth ${smoothIndex + 1} "
 
-        info.args += " +set com_showFPS ${bit(ctx, SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT)} "
-
-        // Sent at every position for the same reason as the texture detail cvars
-        // above: image_useETC2 is CVAR_ARCHIVE, so leaving it out at level 0
-        // would let a stale config keep compressing.
-        val compression = SpinnerWidget.fetchValue(ctx, TEXTURE_COMPRESSION_PREFIX, TEXTURE_COMPRESSION_DEFAULT)
-            .coerceIn(0, TEXTURE_COMPRESSION_LABELS.size - 1)
-        info.args += " +set image_useETC2 $compression "
+        // CVAR_INIT, so the command line is the only place this can be set.
+        info.args += " +set fs_validateOfficialPaks ${bit(ctx, VALIDATE_PAKS_PREFIX, VALIDATE_PAKS_DEFAULT)} "
 
         info.gamepadConfig = GamepadConfigWidget.fetchValue(ctx, GAMEPAD_CONFIG_KEY)
 
