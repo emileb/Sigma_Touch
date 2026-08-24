@@ -15,6 +15,7 @@ import com.opentouchgaming.androidcore.ui.widgets.DeleteDataWidget
 import com.opentouchgaming.androidcore.ui.widgets.GamepadConfigWidget
 import com.opentouchgaming.androidcore.ui.widgets.SpinnerWidget
 import com.opentouchgaming.androidcore.ui.widgets.SwitchWidget
+import com.opentouchgaming.androidcore.databinding.WidgetViewSpinnerBinding
 import com.opentouchgaming.saffal.FileSAF
 import com.opentouchgaming.sigmatouch.R
 import com.opentouchgaming.sigmatouch.databinding.DialogOptionsQuake4Binding
@@ -58,11 +59,33 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         }
 
         val fractionItems = SCREEN_FRACTIONS.map { Pair<String, View?>("$it%", null) }.toTypedArray()
-        SpinnerWidget(
+        val fractionSpinner = SpinnerWidget(
             activity, binding.screenFractionSpinner.root, "3D resolution scale",
             "Renders the world smaller and upscales it. The HUD and menus stay sharp. Biggest single speed-up.",
             fractionItems, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT, R.drawable.setting_resolution
         )
+
+        val filterItems = RESOLUTION_SCALE_FILTER_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
+        SpinnerWidget(
+            activity, binding.resolutionScaleFilterSpinner.root, "Upscale filter",
+            "How the smaller 3D image is stretched back out. Smooth blurs it; Sharp keeps the pixels crisp.",
+            filterItems, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT, R.drawable.setting_resolution
+        )
+
+        // Nothing is upscaled at 100%, so the filter has nothing to do. Grey the
+        // row out rather than hiding it, so it stays visible as the thing that
+        // becomes available once the scale is turned down.
+        val filterBinding = WidgetViewSpinnerBinding.bind(binding.resolutionScaleFilterSpinner.root)
+        fun applyFilterEnabled(fractionIndex: Int)
+        {
+            val enabled = SCREEN_FRACTIONS[fractionIndex.coerceIn(0, SCREEN_FRACTIONS.size - 1)] < 100
+            filterBinding.spinner.isEnabled = enabled
+            filterBinding.root.alpha = if (enabled) 1.0f else 0.4f
+        }
+
+        // Set before the dialog is shown, so the initial state does not animate
+        applyFilterEnabled(SpinnerWidget.fetchValue(activity, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT))
+        fractionSpinner.callback = { index -> applyFilterEnabled(index) }
 
         val picmipItems = PICMIP_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
@@ -103,6 +126,12 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         )
 
         SwitchWidget(
+            activity, binding.shaderAmbientSwitch.root, "Shader effects",
+            "Heat haze on glass and explosions, and similar shader-program stages. Off also skips the full-screen copy they need, so it saves more than the effects themselves cost.",
+            SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT, R.drawable.setting_lightbulb
+        )
+
+        SwitchWidget(
             activity, binding.presentSceneTargetSwitch.root, "Blit scene to screen",
             "GLES renderer bring-up scaffolding. Turning it off will most likely give a black screen.",
             PRESENT_SCENE_TARGET_PREFIX, PRESENT_SCENE_TARGET_DEFAULT, R.drawable.setting_gpu
@@ -138,6 +167,18 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             activity, binding.showFpsSwitch.root, "Show FPS",
             "Draw the frame rate counter in-game.",
             SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT, R.drawable.setting_gear
+        )
+
+        SwitchWidget(
+            activity, binding.toggleCrouchSwitch.root, "Toggle crouch",
+            "The crouch button switches between crouching and standing instead of having to be held down.",
+            TOGGLE_CROUCH_PREFIX, TOGGLE_CROUCH_DEFAULT, R.drawable.setting_gear
+        )
+
+        SwitchWidget(
+            activity, binding.toggleZoomSwitch.root, "Toggle zoom",
+            "The zoom button switches zoom on and off instead of having to be held down.",
+            TOGGLE_ZOOM_PREFIX, TOGGLE_ZOOM_DEFAULT, R.drawable.setting_gear
         )
 
         SwitchWidget(
@@ -233,7 +274,22 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         const val SCREEN_FRACTION_PREFIX = "quake4_screen_fraction"
         const val SCREEN_FRACTION_DEFAULT = 5 // index of 100%
 
-        val SCREEN_FRACTIONS = arrayOf(50, 60, 70, 80, 90, 100)
+        val SCREEN_FRACTIONS = arrayOf(25, 33, 50, 75, 80, 100)
+
+        // r_resolutionScaleMode picks how the cropped 3D image is blitted back
+        // out to full size. Only the two that mean something on the GLES
+        // renderer are offered: 0 is the legacy crop with no upscale at all,
+        // which puts the scene in a corner, and 2's sharpening pass lives in
+        // draw_common.cpp, which the GLES module does not build.
+        // Defaults to Sharp: bilinear at these fractions reads as mud on a phone
+        // panel, and point sampling at a whole-number step is just pixel
+        // doubling, which stays legible.
+        const val RESOLUTION_SCALE_FILTER_PREFIX = "quake4_resolution_scale_filter"
+        const val RESOLUTION_SCALE_FILTER_DEFAULT = 1 // index of Sharp
+
+        val RESOLUTION_SCALE_FILTER_LABELS = arrayOf("Smooth (bilinear)", "Sharp (nearest)")
+
+        val RESOLUTION_SCALE_FILTER_MODES = arrayOf(1, 3)
 
         const val SHADOWS_PREFIX = "quake4_shadows"
         const val SHADOWS_DEFAULT = true
@@ -250,6 +306,12 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         const val AMBIENT_PREFIX = "quake4_ambient"
         const val AMBIENT_DEFAULT = true
+
+        // r_skipNewAmbient, "bypasses all vertex/fragment program ambient
+        // drawing". Same on = drawn polarity as the three above. The engine
+        // exempts SS_POST_PROCESS materials, so fullscreen post still runs.
+        const val SHADER_AMBIENT_PREFIX = "quake4_shader_ambient"
+        const val SHADER_AMBIENT_DEFAULT = true
 
         const val PRESENT_SCENE_TARGET_PREFIX = "quake4_present_scene_target"
         const val PRESENT_SCENE_TARGET_DEFAULT = true
@@ -286,12 +348,22 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         const val SHOW_FPS_PREFIX = "quake4_show_fps"
         const val SHOW_FPS_DEFAULT = false
 
+        // in_toggleCrouch / in_toggleZoom. Both default off in the engine, and
+        // both are worth having on a touchscreen where holding a button down
+        // costs a thumb. in_toggleRun is deliberately not exposed - the engine
+        // only honours it in multiplayer.
+        const val TOGGLE_CROUCH_PREFIX = "quake4_toggle_crouch"
+        const val TOGGLE_CROUCH_DEFAULT = false
+
+        const val TOGGLE_ZOOM_PREFIX = "quake4_toggle_zoom"
+        const val TOGGLE_ZOOM_DEFAULT = false
+
         // fs_validateOfficialPaks covers both pak sets: the retail q4base
         // checksums and the md5s of openQ4's own pak0/pak1. Those md5s are baked
         // into the engine at build time, so a stale pair left in user_files by an
         // older install is fatal until this is turned off.
         const val VALIDATE_PAKS_PREFIX = "quake4_validate_paks"
-        const val VALIDATE_PAKS_DEFAULT = true
+        const val VALIDATE_PAKS_DEFAULT = false
 
         val userDir: FileSAF
             get() = FileSAF(AppInfo.getUserFiles(), USER_DIR_NAME)
@@ -369,12 +441,28 @@ class EngineOptionsQuake4 : EngineOptionsInterface
                 .coerceIn(0, SCREEN_FRACTIONS.size - 1)
             info.args += " +set r_screenFraction ${SCREEN_FRACTIONS[fractionIndex]} "
 
+            // Sent at 100% too, like every other CVAR_ARCHIVE cvar in this block:
+            // it does nothing there, and omitting it would leave a stale
+            // Quake4Config.cfg value in charge the moment the scale is turned down.
+            val filterIndex = SpinnerWidget.fetchValue(ctx, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT)
+                .coerceIn(0, RESOLUTION_SCALE_FILTER_MODES.size - 1)
+            info.args += " +set r_resolutionScaleMode ${RESOLUTION_SCALE_FILTER_MODES[filterIndex]} "
+
             info.args += " +set r_shadows ${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)} "
 
             // The switches are "is this drawn", the cvars are "skip it".
             info.args += " +set r_skipSpecular ${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)} "
             info.args += " +set r_skipBump ${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)} "
             info.args += " +set r_skipAmbient ${invBit(ctx, AMBIENT_PREFIX, AMBIENT_DEFAULT)} "
+            // Two cvars, one switch, and only the second one does anything on
+            // this game's content. r_skipNewAmbient exempts sort >= SS_POST_PROCESS,
+            // and the engine forces that sort onto any material whose program
+            // samples the screen copy -- which is every program material Quake 4
+            // places. It is sent for parity, and so a stale config cannot leave it
+            // set. r_glesD3SkipMaterialPrograms is the one that reaches heat haze,
+            // and it also drops the full-screen copy those stages would force.
+            info.args += " +set r_skipNewAmbient ${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)} "
+            info.args += " +set r_glesD3SkipMaterialPrograms ${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)} "
             info.args += " +set r_glesD3PresentSceneTarget ${bit(ctx, PRESENT_SCENE_TARGET_PREFIX, PRESENT_SCENE_TARGET_DEFAULT)} "
 
             val fpsIndex = SpinnerWidget.fetchValue(ctx, FPS_CAP_PREFIX, FPS_CAP_DEFAULT)
@@ -398,6 +486,9 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         val smoothIndex = SpinnerWidget.fetchValue(ctx, MOUSE_SMOOTH_PREFIX, MOUSE_SMOOTH_DEFAULT)
             .coerceIn(0, MOUSE_SMOOTH_LABELS.size - 1)
         info.args += " +set m_smooth ${smoothIndex + 1} "
+
+        info.args += " +set in_toggleCrouch ${bit(ctx, TOGGLE_CROUCH_PREFIX, TOGGLE_CROUCH_DEFAULT)} "
+        info.args += " +set in_toggleZoom ${bit(ctx, TOGGLE_ZOOM_PREFIX, TOGGLE_ZOOM_DEFAULT)} "
 
         // CVAR_INIT, so the command line is the only place this can be set.
         info.args += " +set fs_validateOfficialPaks ${bit(ctx, VALIDATE_PAKS_PREFIX, VALIDATE_PAKS_DEFAULT)} "
