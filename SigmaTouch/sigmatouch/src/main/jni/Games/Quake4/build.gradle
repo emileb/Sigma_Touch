@@ -2,6 +2,13 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+// The paks are build output, so they are staged into the build directory and
+// added as an asset source, NOT written into src/main/assets. Writing generated
+// files into a source directory races AGP: the asset merge snapshots that
+// directory, so whatever CMake produces afterwards lands in the NEXT build's
+// APK. See the merge*Assets dependency at the bottom of this file.
+def openq4GeneratedAssets = "$buildDir/generated/openq4/assets"
+
 android {
     namespace 'com.opentouchgaming.sigmatouch.quake4'
     compileSdkVersion versions.target_sdk
@@ -34,10 +41,10 @@ android {
                         // openQ4 packs baseoq4/pak0.pk4 and pak1.pk4 itself and
                         // bakes their MD5s into the engine, so the app has to
                         // ship the exact pair this build produced. Stage them
-                        // into this module's own assets: AGP merges them into
-                        // the APK under quake4/, and they disappear along with
-                        // the .so files when the app drops the dependency.
-                        "-DOPENQ4_PAK_ASSET_DIR=${projectDir}/src/main/assets/quake4"
+                        // into this module's generated assets: AGP merges them
+                        // into the APK under quake4/, and they disappear along
+                        // with the .so files when the app drops the dependency.
+                        "-DOPENQ4_PAK_ASSET_DIR=${openq4GeneratedAssets}/quake4"
             }
         }
     }
@@ -58,6 +65,11 @@ android {
                     arguments "-DCMAKE_BUILD_TYPE=Release"
                 }
             }
+        }
+    }
+    sourceSets {
+        main {
+            assets.srcDir openq4GeneratedAssets
         }
     }
     compileOptions {
@@ -83,4 +95,47 @@ dependencies {
     implementation libs.androidx.appcompat
     implementation libs.material
     androidTestImplementation libs.androidx.espresso.core
+}
+
+// oq4_ensure_pak packs during CMake's CONFIGURE step, not as a build target, and
+// nothing in AGP's graph knows that the asset merge consumes its output. Without
+// this edge the merge can run first and package the previous build's pair.
+//
+// That is not cosmetic staleness. generate_pak_header.py bakes the fresh MD5s
+// into the engine, so an APK whose assets lag by one build fails
+// idFileSystemLocal::ValidateOpenQ4Paks and refuses to start. Before the header
+// and the paks were both stale together it was worse than a crash: it shipped
+// quietly, and a release went out whose pak0 had no Russian or Polish string
+// tables at all.
+//
+// Match configureCMake* as a family: the CMake build type differs per variant
+// (release -> MinSizeRel, debug -> Release), so there is no single task name.
+// buildCMake*, not configureCMake*: AGP can run its configure task while cmake
+// itself short-circuits, and the repack then happens when ninja re-runs the
+// configure step during the BUILD (see CMAKE_CONFIGURE_DEPENDS in CMakeLists).
+// Depending on the build task is what puts the merge after the paks exist.
+tasks.matching { it.name ==~ /merge(Debug|Release)Assets/ }.configureEach { mergeAssetsTask ->
+    mergeAssetsTask.dependsOn tasks.matching { it.name.startsWith('buildCMake') }
+}
+
+// Ordering alone is not enough: Gradle also has to KNOW a content change
+// happened. Its native-build up-to-date check only covers CMakeLists.txt and the
+// C++ sources, so adding a language table changed nothing it could see --
+// configureCMake stayed UP-TO-DATE, oq4_ensure_pak never ran, and the previous
+// pak pair shipped unchanged. Declaring the trees is what turns a content edit
+// into a repack.
+//
+// pak1 is ~2.4GB, but Gradle fingerprints by mtime and caches the result, so
+// after the first run this is a stat sweep -- cheap next to shipping a pak whose
+// MD5 does not match the one baked into the engine.
+def openq4ContentRoot = "$projectDir/src/main/jni/openQ4/content/baseoq4"
+tasks.matching {
+    it.name.startsWith('configureCMake') || it.name.startsWith('buildCMake')
+}.configureEach { cmakeTask ->
+    cmakeTask.inputs.dir("$openq4ContentRoot/pak0")
+            .withPropertyName('openq4Pak0Content')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    cmakeTask.inputs.dir("$openq4ContentRoot/pak1")
+            .withPropertyName('openq4Pak1Content')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
 }
