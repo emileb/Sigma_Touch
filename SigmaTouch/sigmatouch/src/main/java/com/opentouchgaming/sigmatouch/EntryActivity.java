@@ -147,7 +147,7 @@ public class EntryActivity extends FragmentActivity
 
             engines.add(new GameEngine(GameEngine.Engine.QUAKE4,
                                        0,
-                                       "Quake 4",
+                                       "openQ4",
                                        "quake4",
                                        "",
                                        new String[]{"dev"},

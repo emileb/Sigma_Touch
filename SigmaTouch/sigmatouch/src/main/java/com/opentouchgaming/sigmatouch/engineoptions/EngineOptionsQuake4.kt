@@ -58,35 +58,6 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             binding.graphicsSettingsGroup.visibility = if (enabled) View.VISIBLE else View.GONE
         }
 
-        val fractionItems = SCREEN_FRACTIONS.map { Pair<String, View?>("$it%", null) }.toTypedArray()
-        val fractionSpinner = SpinnerWidget(
-            activity, binding.screenFractionSpinner.root, "3D resolution scale",
-            "Renders the world smaller and upscales it. The HUD and menus stay sharp. Biggest single speed-up.",
-            fractionItems, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT, R.drawable.setting_resolution
-        )
-
-        val filterItems = RESOLUTION_SCALE_FILTER_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
-        SpinnerWidget(
-            activity, binding.resolutionScaleFilterSpinner.root, "Upscale filter",
-            "How the smaller 3D image is stretched back out. Smooth blurs it; Sharp keeps the pixels crisp.",
-            filterItems, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT, R.drawable.setting_resolution
-        )
-
-        // Nothing is upscaled at 100%, so the filter has nothing to do. Grey the
-        // row out rather than hiding it, so it stays visible as the thing that
-        // becomes available once the scale is turned down.
-        val filterBinding = WidgetViewSpinnerBinding.bind(binding.resolutionScaleFilterSpinner.root)
-        fun applyFilterEnabled(fractionIndex: Int)
-        {
-            val enabled = SCREEN_FRACTIONS[fractionIndex.coerceIn(0, SCREEN_FRACTIONS.size - 1)] < 100
-            filterBinding.spinner.isEnabled = enabled
-            filterBinding.root.alpha = if (enabled) 1.0f else 0.4f
-        }
-
-        // Set before the dialog is shown, so the initial state does not animate
-        applyFilterEnabled(SpinnerWidget.fetchValue(activity, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT))
-        fractionSpinner.callback = { index -> applyFilterEnabled(index) }
-
         val picmipItems = PICMIP_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.picmipSpinner.root, "Texture detail",
@@ -101,34 +72,11 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             compressionItems, TEXTURE_COMPRESSION_PREFIX, TEXTURE_COMPRESSION_DEFAULT, R.drawable.setting_gpu
         )
 
-        SwitchWidget(
-            activity, binding.shadowsSwitch.root, "Shadows",
-            "Stencil shadow volumes. Turning them off is a big speed-up.",
-            SHADOWS_PREFIX, SHADOWS_DEFAULT, R.drawable.setting_lightbulb
-        )
-
-        SwitchWidget(
-            activity, binding.specularSwitch.root, "Specular",
-            "Specular highlights on lit surfaces. Turning them off is cheaper.",
-            SPECULAR_PREFIX, SPECULAR_DEFAULT, R.drawable.setting_lightbulb
-        )
-
-        SwitchWidget(
-            activity, binding.bumpSwitch.root, "Bump maps",
-            "Sample normal maps when lighting. Off lights every surface flat.",
-            BUMP_PREFIX, BUMP_DEFAULT, R.drawable.setting_lightbulb
-        )
-
-        SwitchWidget(
-            activity, binding.ambientSwitch.root, "Ambient pass",
-            "Draw non-interaction surfaces.",
-            AMBIENT_PREFIX, AMBIENT_DEFAULT, R.drawable.setting_lightbulb
-        )
-
-        SwitchWidget(
-            activity, binding.shaderAmbientSwitch.root, "Shader effects",
-            "Heat haze on glass and explosions, and similar shader-program stages. Off also skips the full-screen copy they need, so it saves more than the effects themselves cost.",
-            SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT, R.drawable.setting_lightbulb
+        createImmediateGraphicsWidgets(
+            activity, binding.screenFractionSpinner.root, binding.resolutionScaleFilterSpinner.root,
+            binding.shadowsSwitch.root, binding.specularSwitch.root, binding.bumpSwitch.root,
+            binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fpsCapSpinner.root,
+            binding.vsyncSwitch.root, binding.showFpsSwitch.root
         )
 
         SwitchWidget(
@@ -143,30 +91,11 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             RELEASE_SAMPLE_PAYLOAD_PREFIX, RELEASE_SAMPLE_PAYLOAD_DEFAULT, R.drawable.setting_audio
         )
 
-        val fpsCapItems = FPS_CAP_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
-        SpinnerWidget(
-            activity, binding.fpsCapSpinner.root, "Frame rate cap",
-            "The game only simulates at 60Hz and never interpolates, so anything above 60 repeats views unevenly and looks worse than it measures.",
-            fpsCapItems, FPS_CAP_PREFIX, FPS_CAP_DEFAULT, R.drawable.setting_gear
-        )
-
-        SwitchWidget(
-            activity, binding.vsyncSwitch.root, "VSync",
-            "Pace presentation to the display.",
-            VSYNC_PREFIX, VSYNC_DEFAULT, R.drawable.setting_gpu
-        )
-
         val smoothItems = MOUSE_SMOOTH_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.mouseSmoothSpinner.root, "Look smoothing",
             "Blend this many look samples together. Softens rough touch input at the cost of a little response.",
             smoothItems, MOUSE_SMOOTH_PREFIX, MOUSE_SMOOTH_DEFAULT, R.drawable.setting_gear
-        )
-
-        SwitchWidget(
-            activity, binding.showFpsSwitch.root, "Show FPS",
-            "Draw the frame rate counter in-game.",
-            SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT, R.drawable.setting_gear
         )
 
         SwitchWidget(
@@ -373,6 +302,134 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         private fun invBit(context: android.content.Context, prefix: String, default: Boolean) =
             1 - bit(context, prefix, default)
+
+        // The resolution scale pair lives outside the master switch: it is the app's
+        // own control, always sent. Both cvars are read per frame, so also live in-game.
+        fun resolutionScaleCvars(ctx: android.content.Context): List<Pair<String, String>>
+        {
+            val fractionIndex = SpinnerWidget.fetchValue(ctx, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT)
+                .coerceIn(0, SCREEN_FRACTIONS.size - 1)
+
+            val filterIndex = SpinnerWidget.fetchValue(ctx, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT)
+                .coerceIn(0, RESOLUTION_SCALE_FILTER_MODES.size - 1)
+
+            return listOf(
+                "r_screenFraction" to "${SCREEN_FRACTIONS[fractionIndex]}",
+                "r_resolutionScaleMode" to "${RESOLUTION_SCALE_FILTER_MODES[filterIndex]}"
+            )
+        }
+
+        // The graphics cvars that take effect immediately on a running game.
+        // Shared by the launch args and the in-game dialog so the two cannot drift.
+        fun immediateGraphicsCvars(ctx: android.content.Context): List<Pair<String, String>>
+        {
+            val cvars = mutableListOf<Pair<String, String>>()
+
+            cvars.add("r_shadows" to "${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)}")
+
+            // The switches are "is this drawn", the cvars are "skip it".
+            cvars.add("r_skipSpecular" to "${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)}")
+            cvars.add("r_skipBump" to "${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)}")
+            cvars.add("r_skipAmbient" to "${invBit(ctx, AMBIENT_PREFIX, AMBIENT_DEFAULT)}")
+
+            // Two cvars, one switch: r_skipNewAmbient for parity, r_glesD3SkipMaterialPrograms
+            // is the one that reaches heat haze on the GLES backend.
+            cvars.add("r_skipNewAmbient" to "${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)}")
+            cvars.add("r_glesD3SkipMaterialPrograms" to "${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)}")
+
+            val fpsIndex = SpinnerWidget.fetchValue(ctx, FPS_CAP_PREFIX, FPS_CAP_DEFAULT)
+                .coerceIn(0, FPS_CAPS.size - 1)
+            cvars.add("com_maxfps" to "${FPS_CAPS[fpsIndex]}")
+
+            cvars.add("r_swapInterval" to "${bit(ctx, VSYNC_PREFIX, VSYNC_DEFAULT)}")
+            cvars.add("com_showFPS" to "${bit(ctx, SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT)}")
+
+            return cvars
+        }
+
+        // The widget rows behind those cvars, shared by both dialogs.
+        fun createImmediateGraphicsWidgets(activity: Activity, screenFraction: View, resolutionFilter: View,
+                                           shadows: View, specular: View, bump: View, ambient: View,
+                                           shaderAmbient: View, fpsCap: View, vsync: View, showFps: View)
+        {
+            val fractionItems = SCREEN_FRACTIONS.map { Pair<String, View?>("$it%", null) }.toTypedArray()
+            val fractionSpinner = SpinnerWidget(
+                activity, screenFraction, "3D resolution scale",
+                "Renders the world smaller and upscales it. The HUD and menus stay sharp. Biggest single speed-up.",
+                fractionItems, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT, R.drawable.setting_resolution
+            )
+
+            val filterItems = RESOLUTION_SCALE_FILTER_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
+            SpinnerWidget(
+                activity, resolutionFilter, "Upscale filter",
+                "How the smaller 3D image is stretched back out. Smooth blurs it; Sharp keeps the pixels crisp.",
+                filterItems, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT, R.drawable.setting_resolution
+            )
+
+            // Nothing is upscaled at 100%, so the filter has nothing to do. Grey the
+            // row out rather than hiding it, so it stays visible as the thing that
+            // becomes available once the scale is turned down.
+            val filterBinding = WidgetViewSpinnerBinding.bind(resolutionFilter)
+            fun applyFilterEnabled(fractionIndex: Int)
+            {
+                val enabled = SCREEN_FRACTIONS[fractionIndex.coerceIn(0, SCREEN_FRACTIONS.size - 1)] < 100
+                filterBinding.spinner.isEnabled = enabled
+                filterBinding.root.alpha = if (enabled) 1.0f else 0.4f
+            }
+
+            // Set before the dialog is shown, so the initial state does not animate
+            applyFilterEnabled(SpinnerWidget.fetchValue(activity, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT))
+            fractionSpinner.callback = { index -> applyFilterEnabled(index) }
+
+            SwitchWidget(
+                activity, shadows, "Shadows",
+                "Stencil shadow volumes. Turning them off is a big speed-up.",
+                SHADOWS_PREFIX, SHADOWS_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            SwitchWidget(
+                activity, specular, "Specular",
+                "Specular highlights on lit surfaces. Turning them off is cheaper.",
+                SPECULAR_PREFIX, SPECULAR_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            SwitchWidget(
+                activity, bump, "Bump maps",
+                "Sample normal maps when lighting. Off lights every surface flat.",
+                BUMP_PREFIX, BUMP_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            SwitchWidget(
+                activity, ambient, "Ambient pass",
+                "Draw non-interaction surfaces.",
+                AMBIENT_PREFIX, AMBIENT_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            SwitchWidget(
+                activity, shaderAmbient, "Shader effects",
+                "Heat haze on glass and explosions, and similar shader-program stages. Off also skips the full-screen copy they need, so it saves more than the effects themselves cost.",
+                SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            val fpsCapItems = FPS_CAP_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
+            SpinnerWidget(
+                activity, fpsCap, "Frame rate cap",
+                "The game only simulates at 60Hz and never interpolates, so anything above 60 repeats views unevenly and looks worse than it measures.",
+                fpsCapItems, FPS_CAP_PREFIX, FPS_CAP_DEFAULT, R.drawable.setting_gear
+            )
+
+            SwitchWidget(
+                activity, vsync, "VSync",
+                "Pace presentation to the display.",
+                VSYNC_PREFIX, VSYNC_DEFAULT, R.drawable.setting_gpu
+            )
+
+            SwitchWidget(
+                activity, showFps, "Show FPS",
+                "Draw the frame rate counter in-game.",
+                SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT, R.drawable.setting_gear
+            )
+        }
     }
 
     override fun getRunInfo(version: Int): RunInfo
@@ -386,6 +443,9 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         // openQ4 is an SDL3 engine, so it needs the app3000 SDL activity.
         info.sdlVersion = 3
+
+        // In-game graphics dialog, opened by the touch overlay's settings button.
+        info.inGameOptionsClass = Quake4InGameOptions::class.java.name
 
         // No framebuffer scaler: leaving frameBufferWidth/Height null keeps the
         // engine on the full surface. r_screenFraction scales the 3D view
@@ -437,41 +497,12 @@ class EngineOptionsQuake4 : EngineOptionsInterface
             info.args += " +set image_downSize 0 "
             info.args += " +set image_downSizeLimit 0 "
 
-            val fractionIndex = SpinnerWidget.fetchValue(ctx, SCREEN_FRACTION_PREFIX, SCREEN_FRACTION_DEFAULT)
-                .coerceIn(0, SCREEN_FRACTIONS.size - 1)
-            info.args += " +set r_screenFraction ${SCREEN_FRACTIONS[fractionIndex]} "
+            // Everything safe to change mid-game comes from the shared list the
+            // in-game dialog also sends; see immediateGraphicsCvars for the details.
+            for ((name, value) in immediateGraphicsCvars(ctx))
+                info.args += " +set $name $value "
 
-            // Sent at 100% too, like every other CVAR_ARCHIVE cvar in this block:
-            // it does nothing there, and omitting it would leave a stale
-            // Quake4Config.cfg value in charge the moment the scale is turned down.
-            val filterIndex = SpinnerWidget.fetchValue(ctx, RESOLUTION_SCALE_FILTER_PREFIX, RESOLUTION_SCALE_FILTER_DEFAULT)
-                .coerceIn(0, RESOLUTION_SCALE_FILTER_MODES.size - 1)
-            info.args += " +set r_resolutionScaleMode ${RESOLUTION_SCALE_FILTER_MODES[filterIndex]} "
-
-            info.args += " +set r_shadows ${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)} "
-
-            // The switches are "is this drawn", the cvars are "skip it".
-            info.args += " +set r_skipSpecular ${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)} "
-            info.args += " +set r_skipBump ${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)} "
-            info.args += " +set r_skipAmbient ${invBit(ctx, AMBIENT_PREFIX, AMBIENT_DEFAULT)} "
-            // Two cvars, one switch, and only the second one does anything on
-            // this game's content. r_skipNewAmbient exempts sort >= SS_POST_PROCESS,
-            // and the engine forces that sort onto any material whose program
-            // samples the screen copy -- which is every program material Quake 4
-            // places. It is sent for parity, and so a stale config cannot leave it
-            // set. r_glesD3SkipMaterialPrograms is the one that reaches heat haze,
-            // and it also drops the full-screen copy those stages would force.
-            info.args += " +set r_skipNewAmbient ${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)} "
-            info.args += " +set r_glesD3SkipMaterialPrograms ${invBit(ctx, SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT)} "
             info.args += " +set r_glesD3PresentSceneTarget ${bit(ctx, PRESENT_SCENE_TARGET_PREFIX, PRESENT_SCENE_TARGET_DEFAULT)} "
-
-            val fpsIndex = SpinnerWidget.fetchValue(ctx, FPS_CAP_PREFIX, FPS_CAP_DEFAULT)
-                .coerceIn(0, FPS_CAPS.size - 1)
-            info.args += " +set com_maxfps ${FPS_CAPS[fpsIndex]} "
-
-            info.args += " +set r_swapInterval ${bit(ctx, VSYNC_PREFIX, VSYNC_DEFAULT)} "
-
-            info.args += " +set com_showFPS ${bit(ctx, SHOW_FPS_PREFIX, SHOW_FPS_DEFAULT)} "
 
             // Sent at every position for the same reason as the texture detail cvars
             // above: image_useETC2 is CVAR_ARCHIVE, so leaving it out at level 0
@@ -480,6 +511,10 @@ class EngineOptionsQuake4 : EngineOptionsInterface
                 .coerceIn(0, TEXTURE_COMPRESSION_LABELS.size - 1)
             info.args += " +set image_useETC2 $compression "
         }
+
+        // Outside the master switch on purpose: the app's own resolution control.
+        for ((name, value) in resolutionScaleCvars(ctx))
+            info.args += " +set $name $value "
 
         info.args += " +set s_releaseSamplePayload ${bit(ctx, RELEASE_SAMPLE_PAYLOAD_PREFIX, RELEASE_SAMPLE_PAYLOAD_DEFAULT)} "
 

@@ -26,7 +26,7 @@
             android:id="@+id/graphics_settings_switch"
             layout="@layout/widget_view_switch" />
 
-        <!-- Everything the master switch sends to the engine -->
+        <!-- Only the cvars that take effect immediately in a running game -->
         <LinearLayout
             android:id="@+id/graphics_settings_group"
             android:layout_width="match_parent"
@@ -39,14 +39,6 @@
             android:paddingBottom="8dp"
             android:animateLayoutChanges="true"
             android:orientation="vertical">
-
-            <include
-                android:id="@+id/picmip_spinner"
-                layout="@layout/widget_view_spinner" />
-
-            <include
-                android:id="@+id/texture_compression_spinner"
-                layout="@layout/widget_view_spinner" />
 
             <include
                 android:id="@+id/shadows_switch"
@@ -69,10 +61,6 @@
                 layout="@layout/widget_view_switch" />
 
             <include
-                android:id="@+id/present_scene_target_switch"
-                layout="@layout/widget_view_switch" />
-
-            <include
                 android:id="@+id/fps_cap_spinner"
                 layout="@layout/widget_view_spinner" />
 
@@ -85,34 +73,6 @@
                 layout="@layout/widget_view_switch" />
 
         </LinearLayout>
-
-        <include
-            android:id="@+id/release_sample_payload_switch"
-            layout="@layout/widget_view_switch" />
-
-        <include
-            android:id="@+id/mouse_smooth_spinner"
-            layout="@layout/widget_view_spinner" />
-
-        <include
-            android:id="@+id/toggle_crouch_switch"
-            layout="@layout/widget_view_switch" />
-
-        <include
-            android:id="@+id/toggle_zoom_switch"
-            layout="@layout/widget_view_switch" />
-
-        <include
-            android:id="@+id/validate_paks_switch"
-            layout="@layout/widget_view_switch" />
-
-        <include
-            android:id="@+id/gamepad_config_spinner"
-            layout="@layout/widget_view_gamepad_config" />
-
-        <include
-            android:id="@+id/delete_data_button"
-            layout="@layout/widget_view_delete_data" />
 
     </LinearLayout>
 </ScrollView>

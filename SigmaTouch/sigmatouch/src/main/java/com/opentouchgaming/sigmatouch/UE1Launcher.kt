@@ -31,7 +31,7 @@ class UE1Launcher : GameLauncherInterface
         // Every Unreal install (retail or 205 demo) ships these two packages.
         SubGame.addGame(availableSubGames, runDirectory, secondaryDirectory, SUB_DIR, "", 0, WEAPON_WHEEL_NBR,
                 arrayOf("System/Engine.u", "Maps/Entry.unr"), R.drawable.unreal_icon, "Unreal",
-                "Copy your Unreal folders (System, Maps, Textures, Sounds, Music) to: ", "Put your Unreal folders here.txt")
+                "Copy your Unreal folders (System, Maps, Textures, Sounds, Music) and other files in root to: ", "Put your Unreal folders and files here.txt")
 
         for (game in availableSubGames)
         {

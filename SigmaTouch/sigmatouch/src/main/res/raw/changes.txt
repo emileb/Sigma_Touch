@@ -2,6 +2,20 @@
 BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
 
 
+* Q4: Fixed sound randomiser
+* Q4: Custom buttons now work
+* Q4: Menu buttons no longer act during gameplay
+* Q4: Fixed gamepad
+* AVP: Fixed double key entry for profile name
+* AVP: Fix hide joysticks
+
+RC3
+* Q4: Added in-game real-time setting of Engine graphic options with a new button
+* Q4: Default check PK4 checksum OFF
+* Q4: Fixed new shader skip option (skips heat haze etc)
+* Q4: Fixed weapon breaking when you press 'Return To Game'
+* Q4: Fixed User files on secondary storage
+
 v1.2
 * Added 'Alien vs Predator' engine (NakedAVP)
 * Added tick-rate setting for UE1 multiplayer

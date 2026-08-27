@@ -86,7 +86,7 @@ Each engine's detailed notes — every Android-specific patch, the reasoning beh
 | Unreal (UE1 v200) | `:Unreal` | `/OpenTouch/Sigma/UE1` | Verified running on-device — menu, gameplay, audio, resolution, HUD scale all working | [`docs/engines/ue1.md`](docs/engines/ue1.md) |
 | Unreal Tournament (UE1 v400) | `:UT99` | `/OpenTouch/Sigma/UT99` | Phase 2 well advanced — boots, mouse-navigable menu, audio, gameplay input implemented | [`docs/engines/ut99.md`](docs/engines/ut99.md) |
 | Aliens vs Predator (NakedAVP) | `:AVP` | `/OpenTouch/Sigma/AVP` | Phase 2 — runs on-device (primary storage), menus and gameplay input working, Smacker plot FMVs and Bink intros/outros/menu-backdrop/music implemented | [`docs/engines/avp.md`](docs/engines/avp.md) |
-| Quake 4 (openQ4) | `:Quake4` | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input still Phase 1. **Behind the `includeQuake4` build switch** — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
+| Quake 4 (openQ4) | `:Quake4` | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input goes in by usercmd action, lightly played. **Behind the `includeQuake4` build switch** — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
 
 Key facts that affect work outside any single engine:
 
