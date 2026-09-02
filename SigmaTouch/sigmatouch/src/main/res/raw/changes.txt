@@ -1,7 +1,9 @@
 
 BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
 
+Q4: Fixed error console rendering
 
+---
 * Q4: Fixed sound randomiser
 * Q4: Custom buttons now work
 * Q4: Menu buttons no longer act during gameplay
