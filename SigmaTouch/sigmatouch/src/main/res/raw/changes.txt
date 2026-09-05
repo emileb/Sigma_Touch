@@ -1,6 +1,8 @@
 
-BUILD WITH: ~/Library/Android/sdk/ndk/25.2.9519653/ndk-build -j20
+BUILD
 
+* AVP: Fix all text input issues
+--
 Q4: Fixed error console rendering
 
 ---

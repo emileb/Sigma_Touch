@@ -120,7 +120,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         DeleteDataWidget(
             activity, binding.deleteDataButton.root,
-            "Delete all Quake 4 settings files?", arrayOf("/$USER_DIR_NAME/"), arrayOf(),
+            "Delete all Quake 4 settings files?", arrayOf("/$USER_DIR_NAME/"), arrayOf(CONFIG_FILENAME),
             "", arrayOf(""), arrayOf("")
         )
 
@@ -132,6 +132,9 @@ class EngineOptionsQuake4 : EngineOptionsInterface
     companion object
     {
         const val USER_DIR_NAME = "quake4"
+
+        // openQ4's CONFIG_FILE, written into fs_savepath/<gamedir>
+        const val CONFIG_FILENAME = "openQ4Config.cfg"
 
         // Master switch for the whole graphics block. Off, none of those cvars
         // are put on the command line, which is the only way to let

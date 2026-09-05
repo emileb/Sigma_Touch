@@ -71,7 +71,7 @@ class EngineOptionsAVP : EngineOptionsInterface
 
         DeleteDataWidget(
             activity, binding.deleteDataButton.root,
-            "Delete all Aliens vs Predator settings files?", arrayOf("/$USER_DIR_NAME/"), arrayOf(),
+            "Delete all Aliens vs Predator settings files?", arrayOf("/$USER_DIR_NAME/"), CONFIG_FILENAMES,
             "", arrayOf(""), arrayOf("")
         )
 
@@ -85,6 +85,10 @@ class EngineOptionsAVP : EngineOptionsInterface
     companion object
     {
         const val USER_DIR_NAME = "avp"
+
+        // Settings live in the user profile, whose name the player chooses, so match by
+        // extension. The saves beside it (User_Profiles/<name>_<n>.sav) are left alone.
+        val CONFIG_FILENAMES = arrayOf("*.prf", "AvP_TempVideo.cfg", "default.cfg")
 
         const val UI_SCALE_PREFIX = "avp_ui_scale"
         const val UI_SCALE_STEP = 0.25f
