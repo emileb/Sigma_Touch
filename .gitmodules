@@ -33,4 +33,4 @@
 	url = git@github.com:emileb/openQ4.git
 [submodule "SigmaTouch/sigmatouch/src/main/jni/Games/Quake4/src/main/jni/openQ4-game"]
 	path = SigmaTouch/sigmatouch/src/main/jni/Games/Quake4/src/main/jni/openQ4-game
-	url = https://github.com/themuffinator/openQ4-game.git
+	url = git@github.com:emileb/openQ4-game.git

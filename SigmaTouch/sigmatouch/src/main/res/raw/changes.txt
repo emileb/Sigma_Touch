@@ -1,7 +1,11 @@
 
-BUILD
+v1.3.1
 
+* Q4: Updated to 0.13.2 (Saves not compatible)
+* Q4: Fixed broken shadows
 * AVP: Fix all text input issues
+* Added 2 Gamepad 'Shift Key'
+
 --
 Q4: Fixed error console rendering
 

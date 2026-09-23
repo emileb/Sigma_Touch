@@ -150,7 +150,7 @@ public class EntryActivity extends FragmentActivity
                                        "openQ4",
                                        "quake4",
                                        "",
-                                       new String[]{"dev"},
+                                       new String[]{"0.13.2"},
                                        // libquake4.so dlopen()s librenderer-gles_arm64.so and
                                        // libgame-sp_arm64.so itself, so they are not listed here.
                                        new String[][]{{"oboe", "openal-soft", "quake4"}},
