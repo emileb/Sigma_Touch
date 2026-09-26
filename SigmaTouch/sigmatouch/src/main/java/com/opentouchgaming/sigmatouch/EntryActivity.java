@@ -32,6 +32,7 @@ import com.opentouchgaming.androidcore.ui.StorageConfigDialog;
 import com.opentouchgaming.androidcore.ui.UserFilesDialog;
 import com.opentouchgaming.androidcore.ui.tutorial.Tutorial;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsAVP;
+import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsFarCry;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUT99;
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsUnreal;
@@ -165,6 +166,31 @@ public class EntryActivity extends FragmentActivity
             AppInfo.gameEngines = engines.toArray(new GameEngine[0]);
         }
 
+        // Same arrangement as Quake 4, behind includeFarCry.
+        if (BuildConfig.INCLUDE_FARCRY)
+        {
+            List<GameEngine> engines = new ArrayList<>(Arrays.asList(AppInfo.gameEngines));
+
+            engines.add(new GameEngine(GameEngine.Engine.FARCRY,
+                                       0,
+                                       "Far Cry",
+                                       "farcry",
+                                       "",
+                                       new String[]{"dev"},
+                                       // libfarcry.so dlopen()s libCrySystem.so, which loads the
+                                       // other engine modules by name, so only it is listed here.
+                                       new String[][]{{"oboe", "openal-soft", "farcry"}},
+                                       "",
+                                       GamepadDefinitions.getDefinition(AppInfo.Apps.SIGMA_TOUCH),
+                                       R.drawable.farcry_icon,
+                                       0,
+                                       0x00D07020,
+                                       0,
+                                       EngineOptionsFarCry.class));
+
+            AppInfo.gameEngines = engines.toArray(new GameEngine[0]);
+        }
+
         List<StorageConfigDialog.StorageExamples> examples = new ArrayList<>();
         examples.add(new StorageConfigDialog.StorageExamples("User files", "(config, saves etc):", StorageConfigDialog.PathLocation.PRIM, "/user_files"));
 
@@ -192,6 +218,9 @@ public class EntryActivity extends FragmentActivity
 
         if (BuildConfig.INCLUDE_QUAKE4)
             userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quake 4", "dev", R.drawable.quake4_icon, "quake4"));
+
+        if (BuildConfig.INCLUDE_FARCRY)
+            userFiles.add(new UserFilesDialog.UserFileEntryDescription("Far Cry", "dev", R.drawable.farcry_icon, "farcry"));
 
         userFiles.add(new UserFilesDialog.UserFileEntryDescription("Mod setups", "", R.drawable.ic_baseline_file_copy, "loadouts"));
         userFiles.add(new UserFilesDialog.UserFileEntryDescription("Gamepad setups", "", R.drawable.ic_baseline_file_copy, "gamepad"));

@@ -34,6 +34,8 @@ public class SigmaFragment extends MainFragment
 
     Quake4Launcher quake4Launcher;
 
+    FarCryLauncher farCryLauncher;
+
     public SigmaFragment()
     {
         super();
@@ -51,6 +53,7 @@ public class SigmaFragment extends MainFragment
         ut99Launcher = new UT99Launcher();
         avpLauncher = new AVPLauncher();
         quake4Launcher = new Quake4Launcher();
+        farCryLauncher = new FarCryLauncher();
     }
 
     public void setLauncher()
@@ -68,6 +71,9 @@ public class SigmaFragment extends MainFragment
                 break;
             case QUAKE4:
                 launcher = quake4Launcher;
+                break;
+            case FARCRY:
+                launcher = farCryLauncher;
                 break;
         }
     }
@@ -100,7 +106,7 @@ public class SigmaFragment extends MainFragment
         args += runInfo.args + " ";
         args += argsFinal;
 
-        // Create Intent. AVP and Quake 4 are SDL3 engines (app3000); the UE1-family ones are SDL2.
+        // Create Intent. AVP, Quake 4 and Far Cry are SDL3 engines (app3000); the UE1-family ones are SDL2.
         Intent intent;
 
         if (runInfo.sdlVersion == 3)
@@ -118,9 +124,9 @@ public class SigmaFragment extends MainFragment
         intent.putExtra("load_libs", engine.loadLibs[selectedVersion]);
         intent.putExtra("log_filename", engine.getLogFilename());
 
-        // The UE1-family engines run out of their own System/ subfolder; AVP's
-        // and Quake 4's data sits directly in the game folder.
-        if (engine.engine == GameEngine.Engine.AVP || engine.engine == GameEngine.Engine.QUAKE4)
+        // The UE1-family engines run out of their own System/ subfolder; AVP's,
+        // Quake 4's and Far Cry's data sits directly in the game folder.
+        if (engine.engine == GameEngine.Engine.AVP || engine.engine == GameEngine.Engine.QUAKE4 || engine.engine == GameEngine.Engine.FARCRY)
             intent.putExtra("game_path", rootPath);
         else
             intent.putExtra("game_path", rootPath + "/System");

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sigma Touch is an Android app that ports PC games to touch devices, built on the shared OpenTouch infrastructure. It was scaffolded from Psi Touch and currently ships three engines — **UE1** (Unreal), **UT99** (Unreal Tournament) and **AVP** (Aliens vs Predator); see [Engines](#engines) below for each one's status and notes. The app itself is a thin host: nearly all UI, controls, storage, and SDL plumbing live in the `AndroidCore_OpenTouch` library submodule.
+Sigma Touch is an Android app that ports PC games to touch devices, built on the shared OpenTouch infrastructure. It was scaffolded from Psi Touch and currently ships three engines — **UE1** (Unreal), **UT99** (Unreal Tournament) and **AVP** (Aliens vs Predator) — with **Quake 4** and **Far Cry** in progress behind build switches; see [Engines](#engines) below for each one's status and notes. The app itself is a thin host: nearly all UI, controls, storage, and SDL plumbing live in the `AndroidCore_OpenTouch` library submodule.
 
 - **App module namespace:** `com.opentouchgaming.sigmatouch`
 - **Min SDK:** 19 (Android 4.4) · **Target/Compile SDK:** 35
@@ -23,7 +23,7 @@ This Git repo is a multi-submodule super-project. The Gradle project root is `Si
 - `AndroidCore_OpenTouch/` — submodule providing the `:androidcore` and `:changeloglib` library modules. **Most shared behavior lives here; see its own `CLAUDE.md`.**
 - `SAFFAL/` — submodule providing `:saffal` (scoped-storage file abstraction).
 - `SigmaTouch/sigmatouch/src/main/jni/` — native sources, mostly submodules (`SDL2_OpenTouch`, `Clibs_OpenTouch`, `MobileTouchControls`, `gl4es`, `AudioLibs_OpenTouch`).
-- `SigmaTouch/sigmatouch/src/main/jni/Games/` — each game engine wrapped as its own Gradle library module, registered in `settings.gradle`. Currently: `Games/Unreal/` (`:Unreal`, engine source at `Games/Unreal/src/main/jni/UE1`), `Games/UT99/` (`:UT99`, engine source at `Games/UT99/src/main/jni/ut99dc`) and `Games/AVP/` (`:AVP`, engine source at `Games/AVP/src/main/jni/NakedAVP`).
+- `SigmaTouch/sigmatouch/src/main/jni/Games/` — each game engine wrapped as its own Gradle library module, registered in `settings.gradle`. Currently: `Games/Unreal/` (`:Unreal`, engine source at `Games/Unreal/src/main/jni/UE1`), `Games/UT99/` (`:UT99`, engine source at `Games/UT99/src/main/jni/ut99dc`), `Games/AVP/` (`:AVP`, engine source at `Games/AVP/src/main/jni/NakedAVP`), `Games/Quake4/` (`:Quake4`, `openQ4` + `openQ4-game`) and `Games/FarCry/` (`:FarCry`, engine source at `Games/FarCry/src/main/jni/NearChuckle`).
 
 After cloning, initialize submodules: `git submodule update --init --recursive`.
 
@@ -43,7 +43,7 @@ Run from `SigmaTouch/`:
 
 `includeQuake4` (declared in `SigmaTouch/gradle.properties`, default `true`) is the switch for shipping while Quake 4 is unfinished. Set it to `false` there, or pass `-PincludeQuake4=false`, and the APK loses the `:Quake4` dependency (so `libquake4.so` and the two modules it `dlopen()`s are never built or packaged), the staged `baseoq4` assets, and Quake 4's entries in the engine list and the user-files dialog.
 
-Four pieces make that work, and any future engine needing the same treatment should copy them:
+`includeFarCry` does the same for `:FarCry`. Four pieces make that work, and any future engine needing the same treatment should copy them:
 
 - `settings.gradle` only `include`s `:Quake4` when the property is on, so a release never configures its CMake at all.
 - `sigmatouch/build.gradle` reads the property once, guards `implementation(project(":Quake4"))` with it, and exposes it as `BuildConfig.INCLUDE_QUAKE4`.
@@ -87,15 +87,16 @@ Each engine's detailed notes — every Android-specific patch, the reasoning beh
 | Unreal Tournament (UE1 v400) | `:UT99` | `/OpenTouch/Sigma/UT99` | Phase 2 well advanced — boots, mouse-navigable menu, audio, gameplay input implemented | [`docs/engines/ut99.md`](docs/engines/ut99.md) |
 | Aliens vs Predator (NakedAVP) | `:AVP` | `/OpenTouch/Sigma/AVP` | Phase 2 — runs on-device (primary storage), menus and gameplay input working, Smacker plot FMVs and Bink intros/outros/menu-backdrop/music implemented | [`docs/engines/avp.md`](docs/engines/avp.md) |
 | Quake 4 (openQ4) | `:Quake4` | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input goes in by usercmd action, lightly played. **Behind the `includeQuake4` build switch** — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
+| Far Cry (NearChuckle) | `:FarCry` | `/OpenTouch/Sigma/FarCry` | Phase 2 done — plays by touch on-device through its own ES 3.0 renderer (sticks, swipe look, actions by name, menu/game overlay switching, user files under `user_files/farcry/`); played through Training and the start of Pier (machine gun, sniper, checkpoint reload). Behind the `includeFarCry` build switch (same shape as `includeQuake4`) | [`docs/engines/farcry.md`](docs/engines/farcry.md) |
 
 Key facts that affect work outside any single engine:
 
 - **`:Unreal` and `:UT99` are deliberately separate engines.** They are different UE1 generations (package versions 61–67 vs 68) and their content is mutually incompatible, so neither can load the other's data.
-- **`:AVP` and `:Quake4` are the SDL3 engines**; the UE1-family ones are SDL2. `RunInfo.sdlVersion` picks the SDL activity (`org.libsdl.app3000` vs `app2012`) in `SigmaFragment.launchGame()`, and `jni/Android.mk` sets `SDL3_ENABLED=1` to build `libSDL3.so` alongside SDL2.
-- **`:Quake4` is the only arm64-only engine, and the only one that ships more than one `.so`.** It builds `libquake4.so` plus two modules the engine `dlopen()`s at runtime (`librenderer-gles_arm64.so`, `libgame-sp_arm64.so`), mirroring openQ4's own desktop layout. It is also the only engine whose source of truth is Meson — its Android `CMakeLists.txt` reuses openQ4's own source-list scripts so the two builds cannot drift. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
+- **`:AVP`, `:Quake4` and `:FarCry` are the SDL3 engines**; the UE1-family ones are SDL2. `RunInfo.sdlVersion` picks the SDL activity (`org.libsdl.app3000` vs `app2012`) in `SigmaFragment.launchGame()`, and `jni/Android.mk` sets `SDL3_ENABLED=1` to build `libSDL3.so` alongside SDL2.
+- **`:Quake4` and `:FarCry` are the arm64-only engines, and the ones that ship more than one `.so`.** Quake 4 builds `libquake4.so` plus two modules the engine `dlopen()`s at runtime (`librenderer-gles_arm64.so`, `libgame-sp_arm64.so`), mirroring openQ4's own desktop layout; Far Cry builds `libfarcry.so` plus fifteen `libCry*.so`/`libXRenderGLES.so` modules loaded by name through `MODULE_PATH` (see [`docs/engines/farcry.md`](docs/engines/farcry.md)). It is also the only engine whose source of truth is Meson — its Android `CMakeLists.txt` reuses openQ4's own source-list scripts so the two builds cannot drift. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
 - **`:AVP` is the only engine using gl4es**; the two UE1-family engines have real GLES renderers of their own.
 - **`:AVP` is the only engine linking the shared FFmpeg prebuilts** (`Clibs_OpenTouch/ffmpeg`, static + PIC), for Bink video/audio. Those prebuilts are shared with q2repro in Delta/Quad Touch, so rebuilding them affects those apps too — see [`docs/engines/avp.md`](docs/engines/avp.md) for the recipe.
-- Engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`, `openQ4`); AVP's and openQ4's are SSH remotes. openQ4's Android work now sits on its **`android-gles`** branch (upstream adapted this fork's port onto openQ4 0.13.1 and publishes it under that name), and its companion game-library repo `openQ4-game` is a second submodule on a matching `android-gles` branch pinned to the revision that integration requires. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
+- Engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`, `openQ4`, `NearChuckle`); AVP's, openQ4's and NearChuckle's are SSH remotes. openQ4's Android work now sits on its **`android-gles`** branch (upstream adapted this fork's port onto openQ4 0.13.1 and publishes it under that name), and its companion game-library repo `openQ4-game` is a second submodule on a matching `android-gles` branch pinned to the revision that integration requires. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
 
 ### Storage
 

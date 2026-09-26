@@ -62,3 +62,8 @@ if (providers.gradleProperty('includeQuake4').getOrElse('true').toBoolean()) {
     include ':Quake4'
     project(':Quake4').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/Quake4")
 }
+
+if (providers.gradleProperty('includeFarCry').getOrElse('true').toBoolean()) {
+    include ':FarCry'
+    project(':FarCry').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/FarCry")
+}
