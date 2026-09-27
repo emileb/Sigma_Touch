@@ -75,8 +75,9 @@ class FarCryLauncher : GameLauncherInterface
         args += " -CACHEPATH " + Utils.quoteString(AppInfo.cacheFiles + "/farcry")
 
         // The shader cache pak is staged on primary storage; only outside the game folder does it need naming.
+        // Named even before it exists: the args are built on selection, the pak is staged at launch.
         val pak = File(shaderCacheDir, SHADER_CACHE_PAK)
-        if (subGame.rootPath != runDirectory && pak.length() > 0)
+        if (subGame.rootPath != runDirectory)
             args += " -SHADERPAK " + Utils.quoteString(pak.absolutePath)
 
         return args
@@ -117,6 +118,10 @@ class FarCryLauncher : GameLauncherInterface
         log.log(DebugLog.Level.D, "staging $SHADER_CACHE_PAK into $destDir")
         Utils.copyAsset(activity, "$ASSET_DIR/$SHADER_CACHE_PAK", destDir.absolutePath, SHADER_CACHE_PAK)
 
+        // Superseded paks we staged; in the game folder the engine would open them too.
+        for (old in OLD_SHADER_CACHE_PAKS)
+            runCatching { File(destDir, old).delete() }
+
         if (File(destDir, SHADER_CACHE_PAK).length() > 0 && installedAt.isNotEmpty())
             runCatching { stamp.writeText(installedAt) }
         else
@@ -128,7 +133,10 @@ class FarCryLauncher : GameLauncherInterface
         // Games/FarCry/src/main/assets/farcry/, merged into the APK by AGP.
         private const val ASSET_DIR = "farcry"
 
-        private const val SHADER_CACHE_PAK = "GL_Shaders_20260517.pak"
+        // The 20260517 community cache plus the programs it lacked, compiled with NearChuckle's tools/cgbuild.py.
+        private const val SHADER_CACHE_PAK = "GL_Shaders_20260927.pak"
+
+        private val OLD_SHADER_CACHE_PAKS = arrayOf("GL_Shaders_20260517.pak")
 
         private const val STAGE_STAMP_FILENAME = ".shadercache_staged"
     }

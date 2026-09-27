@@ -109,6 +109,7 @@ Uses the OpenTouch storage model: legacy path `/OpenTouch/Sigma/` plus Android R
 - **Glide is pinned to 4.16.0** and `constraintlayout` to `1.1.3` / `recyclerview` to `1.3.2` for Nvidia Shield TV + API 19 compatibility — do not upgrade without testing on those targets.
 - Native `.so` outputs in `src/main/libs/` are committed-elsewhere build artifacts; regenerate via `ndk-build` if a native submodule changes.
 - The Gradle configuration cache is enabled.
+- **`android.nonFinalResIds=true` must stay on.** With final IDs, Kotlin inlines `R.drawable.*` numbers and incremental builds can keep stale ones after resources are added — v1.4 shipped with wrong sub-game icons that way.
 
 ## Porting a new game engine
 

@@ -1,4 +1,20 @@
 
+* Fixed wrong game icons for Quake 4, Unreal and Unreal Tournament
+* Far Cry: Fixed water graphics (green artifacts in the sea)
+* Far Cry: 'Very High' graphics settings now work (Lighting, water, per-pixel shaders)
+* Far Cry: Fixed light coronas
+* Far Cry: New installs start on the 'High' graphics preset
+* Far Cry: Widescreen view no longer cropped, weapon correctly positioned
+* Far Cry: Sniper scope and binoculars are no longer stretched on widescreen
+* Far Cry: Radar no longer cut off at the bottom
+* Far Cry: Scope button now exits the scope on all weapons
+* Far Cry: 'Delete config' also removes the default_*.cfg files
+
+v1.4
+* Added 'Far Cry' engine (NearChuckle)
+
+
+
 v1.3.1
 
 * Q4: Updated to 0.13.2 (Saves not compatible)

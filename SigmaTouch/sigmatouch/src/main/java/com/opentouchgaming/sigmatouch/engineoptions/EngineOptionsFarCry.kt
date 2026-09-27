@@ -122,7 +122,8 @@ class EngineOptionsFarCry : EngineOptionsInterface
         // Phase 2 redirects profiles, system.cfg and log.txt here (see docs/engines/farcry.md).
         const val USER_DIR_NAME = "farcry"
 
-        val CONFIG_FILENAMES = arrayOf("system.cfg", "game.cfg")
+        // The default profile keeps its own copies, loaded after these; without them a delete would not reach the first-run defaults.
+        val CONFIG_FILENAMES = arrayOf("system.cfg", "game.cfg", "default_system.cfg", "default_game.cfg")
 
         // Spinner index = cl_aim_assist level (CryGame/AimAssist.cpp).
         const val AIM_ASSIST_PREFIX = "farcry_aim_assist"
