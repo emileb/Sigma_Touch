@@ -1,4 +1,29 @@
 
+
+#release 4
+* Far Cry: Now runs on 32-bit devices (e.g. Nvidia Shield Tablet)
+* Far Cry: Fixed the player being thrown into the air or out of the map when hit by some enemies
+* Far Cry: Fixed the sprint button switching seats while in a vehicle
+* Far Cry: Fixed CryVision only covering part of the screen
+* Far Cry: Custom buttons can now be bound in the Controls menu
+* Far Cry: New Objectives (hold) and Change grenade buttons
+* Far Cry: Scope button now also zooms: tap for the scope, slide up or down to zoom in or out
+* Far Cry: Gamepad: added Objectives, Change grenade and scope zoom in/out
+
+#release 3
+* Fixed wrong game icons for Quake 4 and Unreal (still wrong in release 2)
+* Far Cry: Fixed white characters and weapons on some Adreno 7xx phones
+* Far Cry: Fixed white inflatable boat (missing shaders when fog is off)
+* Far Cry: Fixed reflections on glass and reflective surfaces
+* Far Cry: Fixed indoor shadows moving with the camera
+* Far Cry: Main menu background video fills wide screens
+* Far Cry: 'Widescreen fix' option (off gives the original view)
+* Far Cry: 'Max FPS' option, 60 by default
+* Far Cry: Crouch button: tap to crouch, hold to go prone
+* Far Cry: Added CryVision and fire mode buttons (touch and gamepad)
+* Far Cry: Game log now written to user_files/logs/farcry.txt
+
+# release 2
 * Fixed wrong game icons for Quake 4, Unreal and Unreal Tournament
 * Far Cry: Fixed water graphics (green artifacts in the sea)
 * Far Cry: 'Very High' graphics settings now work (Lighting, water, per-pixel shaders)

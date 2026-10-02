@@ -23,6 +23,14 @@
             layout="@layout/widget_view_spinner" />
 
         <include
+            android:id="@+id/widescreen_switch"
+            layout="@layout/widget_view_switch" />
+
+        <include
+            android:id="@+id/max_fps_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
             android:id="@+id/dev_mode_switch"
             layout="@layout/widget_view_switch" />
 

@@ -11,10 +11,8 @@ android {
         targetSdk versions.target_sdk
 
         ndk {
-            // arm64 only, like :Quake4: the engine's 64-bit configuration is the
-            // one the Linux/macOS port runs and Far Cry's working set is too big
-            // for a 32-bit address space anyway.
-            abiFilters = ['arm64-v8a']
+            // 32-bit arm builds the engine's 64-bit configuration too (see the engine's CMakeLists.txt).
+            abiFilters = abi_filters
         }
         externalNativeBuild {
             cmake {

@@ -55,13 +55,26 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val aimItems = AIM_ASSIST_LEVELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.aimAssistSpinner.root, "Aim assist",
-            "Helps aim at the enemy nearest the crosshair. Light slows your swipe over a target and pulls gently, Strong pulls harder and follows the target while firing, Snap also turns onto the target when you press fire.",
+            "Pulls your aim toward nearby enemies. Snap also turns onto the target when you fire.",
             aimItems, AIM_ASSIST_PREFIX, AIM_ASSIST_DEFAULT, R.drawable.joystick
         )
 
         SwitchWidget(
+            activity, binding.widescreenSwitch.root, "Widescreen fix",
+            "Full view and unstretched scopes on wide screens. Off gives the original cropped view.",
+            WIDESCREEN_PREFIX, WIDESCREEN_DEFAULT, R.drawable.setting_resolution
+        )
+
+        val fpsItems = MAX_FPS_ITEMS.map { Pair<String, View?>(it, null) }.toTypedArray()
+        SpinnerWidget(
+            activity, binding.maxFpsSpinner.root, "Max FPS",
+            "Lower caps save battery and keep the phone cooler.",
+            fpsItems, MAX_FPS_PREFIX, MAX_FPS_DEFAULT, R.drawable.setting_gpu
+        )
+
+        SwitchWidget(
             activity, binding.devModeSwitch.root, "Developer mode",
-            "Starts the engine with -DEVMODE: console cheats and the developer keys.",
+            "Enables console cheats and the developer keys (-DEVMODE).",
             DEVMODE_PREFIX, DEVMODE_DEFAULT, R.drawable.setting_gear
         )
 
@@ -70,7 +83,7 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val uploadItems = UPLOAD_MODES.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.uploadModeSpinner.root, "Vertex upload",
-            "How immediate-mode geometry is handed to the GPU driver. Client arrays are fastest on Adreno; try the others if the menu or HUD is slow.",
+            "How immediate-mode geometry reaches the GPU. Client arrays are fastest on Adreno.",
             uploadItems, UPLOAD_MODE_PREFIX, UPLOAD_MODE_DEFAULT, R.drawable.setting_gpu
         )
 
@@ -79,7 +92,7 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val decalItems = DECAL_PRESETS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.decalSpinner.root, "Bullet decals",
-            "Marks left by bullets and explosions. Reduce them on low-end devices if the frame rate drops while firing.",
+            "Bullet and explosion marks. Reduce if firing makes the frame rate drop.",
             decalItems, DECAL_PREFIX, DECAL_DEFAULT, R.drawable.setting_gpu
         )
 
@@ -87,13 +100,13 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val mapItems = MAP_MODES.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.mapModeSpinner.root, "Buffer updates",
-            "How dynamic vertex and index buffers are updated each frame. The persistent ring is fastest on Adreno (firing at the ground drops to 17 fps without it); the others are for comparison.",
+            "How dynamic buffers are updated each frame. Persistent ring is fastest on Adreno.",
             mapItems, MAP_MODE_PREFIX, MAP_MODE_DEFAULT, R.drawable.setting_gpu
         )
 
         SwitchWidget(
             activity, binding.glesDebugSwitch.root, "Renderer debug log",
-            "FARCRY_GLES_DEBUG: logs shader sources, uploads, GL errors and per-path timing. Slow.",
+            "Logs shaders, uploads, GL errors and timing (FARCRY_GLES_DEBUG). Slow.",
             GLES_DEBUG_PREFIX, GLES_DEBUG_DEFAULT, R.drawable.setting_gpu
         )
 
@@ -102,7 +115,7 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val levelItems = START_LEVELS.map { Pair<String, View?>(it, null) }.toTypedArray()
         SpinnerWidget(
             activity, binding.startLevelSpinner.root, "Dev: start in level",
-            "Skips the intro, menus and opening cutscene and loads this level at launch.",
+            "Skips the intro and menus and loads this level at launch.",
             levelItems, START_LEVEL_PREFIX, START_LEVEL_DEFAULT, R.drawable.setting_gear
         )
 
@@ -129,6 +142,16 @@ class EngineOptionsFarCry : EngineOptionsInterface
         const val AIM_ASSIST_PREFIX = "farcry_aim_assist"
         const val AIM_ASSIST_DEFAULT = 1
         val AIM_ASSIST_LEVELS = arrayOf("Off", "Light", "Strong", "Snap")
+
+        // r_WideScreenFix: Hor+ view and the 4:3 box for scope, binocular and radar art.
+        const val WIDESCREEN_PREFIX = "farcry_widescreen"
+        const val WIDESCREEN_DEFAULT = true
+
+        // Spinner index -> g_maxfps (CryGame's frame pacer); 0 is no cap.
+        const val MAX_FPS_PREFIX = "farcry_max_fps"
+        const val MAX_FPS_DEFAULT = 2
+        val MAX_FPS_ITEMS = arrayOf("30", "45", "60", "90", "120", "Unlimited")
+        val MAX_FPS_VALUES = intArrayOf(30, 45, 60, 90, 120, 0)
 
         const val DEVMODE_PREFIX = "farcry_devmode"
         const val DEVMODE_DEFAULT = false
@@ -208,6 +231,14 @@ class EngineOptionsFarCry : EngineOptionsInterface
 
         val aimAssist = SpinnerWidget.fetchValue(AppInfo.getContext(), AIM_ASSIST_PREFIX, AIM_ASSIST_DEFAULT)
         info.args += " -ENV:FARCRY_AIM_ASSIST=$aimAssist "
+
+        // Passed every launch so the switch wins over the value saved in system.cfg.
+        val widescreen = SwitchWidget.fetchValue(AppInfo.getContext(), WIDESCREEN_PREFIX, WIDESCREEN_DEFAULT)
+        info.args += " -CVAR:r_WideScreenFix=" + (if (widescreen) 1 else 0) + " "
+
+        val maxFps = SpinnerWidget.fetchValue(AppInfo.getContext(), MAX_FPS_PREFIX, MAX_FPS_DEFAULT)
+        if (maxFps in MAX_FPS_VALUES.indices)
+            info.args += " -CVAR:g_maxfps=" + MAX_FPS_VALUES[maxFps] + " "
 
         // -ENV:NAME=VALUE is turned into setenv() by PortableInit before the engine starts.
         if (SwitchWidget.fetchValue(AppInfo.getContext(), GLES_DEBUG_PREFIX, GLES_DEBUG_DEFAULT))

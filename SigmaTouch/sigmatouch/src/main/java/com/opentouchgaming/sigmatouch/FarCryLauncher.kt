@@ -133,10 +133,10 @@ class FarCryLauncher : GameLauncherInterface
         // Games/FarCry/src/main/assets/farcry/, merged into the APK by AGP.
         private const val ASSET_DIR = "farcry"
 
-        // The 20260517 community cache plus the programs it lacked, compiled with NearChuckle's tools/cgbuild.py.
-        private const val SHADER_CACHE_PAK = "GL_Shaders_20260927.pak"
+        // The 20260517 community cache plus the programs it lacked (NearChuckle's tools/cgbuild.py) and NoFog builds of every Fog program (tools/nofog.py).
+        private const val SHADER_CACHE_PAK = "GL_Shaders_20260928.pak"
 
-        private val OLD_SHADER_CACHE_PAKS = arrayOf("GL_Shaders_20260517.pak")
+        private val OLD_SHADER_CACHE_PAKS = arrayOf("GL_Shaders_20260517.pak", "GL_Shaders_20260927.pak")
 
         private const val STAGE_STAMP_FILENAME = ".shadercache_staged"
     }
