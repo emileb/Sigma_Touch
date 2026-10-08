@@ -1,5 +1,22 @@
 
 
+#release 5
+Far Cry is now a full release. What the port adds to the original game:
+* New OpenGL ES 3 renderer: every graphics setting up to 'Very High'
+* Runs on 64-bit and 32-bit ARM devices
+* Widescreen: wider view with scopes, binoculars, radar and HUD kept in shape ('Widescreen fix' option)
+* Full touch controls
+* Scope button: tap for the scope, slide up or down to zoom
+* Aim assist for touch and gamepad: Off, Light, Strong or Snap
+* Full gamepad support
+* Custom touch buttons, bindable in the Controls menu
+* Touch keyboard for the console and text entry
+* Resolution and 'Max FPS' options (60 FPS by default)
+* 'Bullet decals' option to keep the frame rate up when firing
+
+* Far Cry: Fixed _ and other shifted characters on the touch keyboard
+* Far Cry: Sound now recovers when the audio output changes (headphones, Bluetooth, calls)
+
 #release 4
 * Far Cry: Now runs on 32-bit devices (e.g. Nvidia Shield Tablet)
 * Far Cry: Fixed the player being thrown into the air or out of the map when hit by some enemies
