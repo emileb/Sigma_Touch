@@ -72,6 +72,13 @@ class EngineOptionsFarCry : EngineOptionsInterface
             fpsItems, MAX_FPS_PREFIX, MAX_FPS_DEFAULT, R.drawable.setting_gpu
         )
 
+        val vegItems = VEGETATION_DISTANCE_ITEMS.map { Pair<String, View?>(it, null) }.toTypedArray()
+        SpinnerWidget(
+            activity, binding.vegetationDistanceSpinner.root, "Vegetation 3D distance",
+            "How far trees and plants stay 3D before turning into flat sprites. Higher stops distant trees changing shape, but costs frame rate.",
+            vegItems, VEGETATION_DISTANCE_PREFIX, VEGETATION_DISTANCE_DEFAULT, R.drawable.setting_gpu
+        )
+
         SwitchWidget(
             activity, binding.devModeSwitch.root, "Developer mode",
             "Enables console cheats and the developer keys (-DEVMODE).",
@@ -152,6 +159,13 @@ class EngineOptionsFarCry : EngineOptionsInterface
         const val MAX_FPS_DEFAULT = 2
         val MAX_FPS_ITEMS = arrayOf("30", "45", "60", "90", "120", "Unlimited")
         val MAX_FPS_VALUES = intArrayOf(30, 45, 60, 90, 120, 0)
+
+        // Spinner index -> e_vegetation_sprites_distance_ratio (3D/sprite switch at 18x a plant's height, Vegetation.cpp);
+        // 1000 puts the switch past the view distance.
+        const val VEGETATION_DISTANCE_PREFIX = "farcry_vegetation_distance"
+        const val VEGETATION_DISTANCE_DEFAULT = 0
+        val VEGETATION_DISTANCE_ITEMS = arrayOf("1x (original)", "2x", "4x", "Infinite (always 3D)")
+        val VEGETATION_DISTANCE_VALUES = intArrayOf(1, 2, 4, 1000)
 
         const val DEVMODE_PREFIX = "farcry_devmode"
         const val DEVMODE_DEFAULT = false
@@ -239,6 +253,11 @@ class EngineOptionsFarCry : EngineOptionsInterface
         val maxFps = SpinnerWidget.fetchValue(AppInfo.getContext(), MAX_FPS_PREFIX, MAX_FPS_DEFAULT)
         if (maxFps in MAX_FPS_VALUES.indices)
             info.args += " -CVAR:g_maxfps=" + MAX_FPS_VALUES[maxFps] + " "
+
+        // Passed at 1x too, so it wins over a value saved from the console.
+        val vegDistance = SpinnerWidget.fetchValue(AppInfo.getContext(), VEGETATION_DISTANCE_PREFIX, VEGETATION_DISTANCE_DEFAULT)
+        if (vegDistance in VEGETATION_DISTANCE_VALUES.indices)
+            info.args += " -CVAR:e_vegetation_sprites_distance_ratio=" + VEGETATION_DISTANCE_VALUES[vegDistance] + " "
 
         // -ENV:NAME=VALUE is turned into setenv() by PortableInit before the engine starts.
         if (SwitchWidget.fetchValue(AppInfo.getContext(), GLES_DEBUG_PREFIX, GLES_DEBUG_DEFAULT))

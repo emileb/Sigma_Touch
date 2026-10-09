@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="1.4.1" changeDate="9 October 2026">
+        <changelogtext>Far Cry: Fixed explosions and other loud sounds being very quiet</changelogtext>
+        <changelogtext>Far Cry: New 'Vegetation 3D distance' option (1x, 2x, 4x, Infinite) to stop distant trees changing shape</changelogtext>
+        <changelogtext>Far Cry: Larger console text</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="1.4" changeDate="8 October 2026">
         <changelogtext>Added 'Far Cry' engine (NearChuckle). Featuring:</changelogtext>
         <changelogtext> - New OpenGL ES 3 renderer: every graphics setting up to 'Very High'</changelogtext>

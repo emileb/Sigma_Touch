@@ -31,6 +31,10 @@
             layout="@layout/widget_view_spinner" />
 
         <include
+            android:id="@+id/vegetation_distance_spinner"
+            layout="@layout/widget_view_spinner" />
+
+        <include
             android:id="@+id/dev_mode_switch"
             layout="@layout/widget_view_switch" />
 

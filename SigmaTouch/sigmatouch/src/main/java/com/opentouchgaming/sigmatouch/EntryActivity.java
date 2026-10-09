@@ -184,7 +184,7 @@ public class EntryActivity extends FragmentActivity
                                        GamepadDefinitions.getDefinition(AppInfo.Apps.SIGMA_TOUCH),
                                        R.drawable.farcry_icon,
                                        0,
-                                       0x00D07020,
+                                       0x008030C0,
                                        0,
                                        EngineOptionsFarCry.class));
 
@@ -237,6 +237,11 @@ public class EntryActivity extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        // Before super.onCreate: a restored SigmaFragment is built there, and its tool buttons pick "Other apps" from website.
+        AppInfo.website = "http://opentouchgaming.com/sigma-touch/";
+        AppInfo.showRateButton = false;
+        AppInfo.versionCheckKey = "sigma"; // non-null enables the online version check
+
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -265,11 +270,6 @@ public class EntryActivity extends FragmentActivity
                            0,
                            true,
                            false);
-
-
-        AppInfo.website = "http://opentouchgaming.com/sigma-touch/";
-        AppInfo.showRateButton = false;
-        AppInfo.versionCheckKey = "sigma"; // non-null enables the online version check
 
         // Check that the activity is using the layout version with
         // the fragment_container FrameLayout

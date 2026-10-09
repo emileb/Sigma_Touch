@@ -1,5 +1,11 @@
 
 
+#release 6
+* Far Cry: Fixed explosions and other loud sounds being very quiet
+* Far Cry: New 'Vegetation 3D distance' option (1x, 2x, 4x, Infinite) to stop distant trees changing shape
+* Far Cry: Larger console text
+
+
 #release 5
 Far Cry is now a full release. What the port adds to the original game:
 * New OpenGL ES 3 renderer: every graphics setting up to 'Very High'
