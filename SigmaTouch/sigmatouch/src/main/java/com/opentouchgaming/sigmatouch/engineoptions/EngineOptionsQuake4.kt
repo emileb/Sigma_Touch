@@ -74,9 +74,10 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         createImmediateGraphicsWidgets(
             activity, binding.screenFractionSpinner.root, binding.resolutionScaleFilterSpinner.root,
-            binding.shadowsSwitch.root, binding.specularSwitch.root, binding.bumpSwitch.root,
-            binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fpsCapSpinner.root,
-            binding.vsyncSwitch.root, binding.showFpsSwitch.root
+            binding.shadowsSwitch.root, binding.softShadowsSwitch.root, binding.shadowMapQualitySpinner.root,
+            binding.specularSwitch.root, binding.bumpSwitch.root,
+            binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fillLightSpinner.root,
+            binding.fpsCapSpinner.root, binding.vsyncSwitch.root, binding.showFpsSwitch.root
         )
 
         SwitchWidget(
@@ -226,6 +227,36 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         const val SHADOWS_PREFIX = "quake4_shadows"
         const val SHADOWS_DEFAULT = true
 
+        // r_useShadowMap: filtered shadow maps instead of stencil volumes. The
+        // engine keeps stencil for any light the maps cannot serve (incomplete
+        // casters, mirrors, too many lights, or a map too coarse for the light,
+        // like the huge outdoor sun lights), so turning it on never removes a
+        // shadow. Off by default: it costs GPU time and video memory, and the
+        // stencil volumes are still built, so it saves no CPU.
+        const val SOFT_SHADOWS_PREFIX = "quake4_soft_shadows"
+        const val SOFT_SHADOWS_DEFAULT = false
+
+        // Map resolution for r_useShadowMap. Point lights (most of Quake 4) use
+        // a depth cube, 6 x size^2 x 4 bytes, and up to 8 are resident: 12MB at
+        // Low, 48MB at Medium (the desktop default), 192MB at High. Lower sizes
+        // also send more of the very large lights back to stencil, because the
+        // engine refuses maps whose texels would be too coarse.
+        const val SHADOW_MAP_QUALITY_PREFIX = "quake4_shadow_map_quality"
+        const val SHADOW_MAP_QUALITY_DEFAULT = 1 // index of Medium
+
+        val SHADOW_MAP_QUALITY_LABELS = arrayOf("Low", "Medium", "High")
+        val SHADOW_MAP_POINT_SIZES = arrayOf(256, 512, 1024)
+        val SHADOW_MAP_PROJECTED_SIZES = arrayOf(512, 1024, 2048)
+
+        // r_glesD3FillLight / r_glesD3FillLightBrightness: diii4a's "global
+        // illumination", a fixed-direction light on every surface so dark
+        // corners stay visible. Medium is diii4a's own strength.
+        const val FILL_LIGHT_PREFIX = "quake4_fill_light"
+        const val FILL_LIGHT_DEFAULT = 0 // index of Off
+
+        val FILL_LIGHT_LABELS = arrayOf("Off", "Low", "Medium", "High")
+        val FILL_LIGHT_BRIGHTNESS = arrayOf("0", "0.15", "0.3", "0.5")
+
         // These three read as features, not as the r_skip* cvars behind them,
         // so they switch the same way round as Shadows: on = drawn. The setting
         // keys are named for the feature too, so an older stored "skip" value
@@ -288,7 +319,7 @@ class EngineOptionsQuake4 : EngineOptionsInterface
         const val TOGGLE_CROUCH_DEFAULT = false
 
         const val TOGGLE_ZOOM_PREFIX = "quake4_toggle_zoom"
-        const val TOGGLE_ZOOM_DEFAULT = false
+        const val TOGGLE_ZOOM_DEFAULT = true
 
         // fs_validateOfficialPaks covers both pak sets: the retail q4base
         // checksums and the md5s of openQ4's own pak0/pak1. Those md5s are baked
@@ -330,6 +361,22 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
             cvars.add("r_shadows" to "${bit(ctx, SHADOWS_PREFIX, SHADOWS_DEFAULT)}")
 
+            // Shadow maps and their resolution. The engine re-allocates the maps
+            // when the size changes, so both are safe mid-game.
+            cvars.add("r_useShadowMap" to "${bit(ctx, SOFT_SHADOWS_PREFIX, SOFT_SHADOWS_DEFAULT)}")
+            val shadowQuality = SpinnerWidget.fetchValue(ctx, SHADOW_MAP_QUALITY_PREFIX, SHADOW_MAP_QUALITY_DEFAULT)
+                .coerceIn(0, SHADOW_MAP_QUALITY_LABELS.size - 1)
+            cvars.add("r_shadowMapPointSize" to "${SHADOW_MAP_POINT_SIZES[shadowQuality]}")
+            cvars.add("r_shadowMapSize" to "${SHADOW_MAP_PROJECTED_SIZES[shadowQuality]}")
+
+            // Archived, so force Quake 4's own specular over a value an earlier build saved.
+            cvars.add("r_glesD3SpecularModel" to "0")
+            // Fill light is a separately compiled shader the engine picks per frame, so it switches instantly.
+            val fillIndex = SpinnerWidget.fetchValue(ctx, FILL_LIGHT_PREFIX, FILL_LIGHT_DEFAULT)
+                .coerceIn(0, FILL_LIGHT_LABELS.size - 1)
+            cvars.add("r_glesD3FillLight" to "${if (fillIndex > 0) 1 else 0}")
+            cvars.add("r_glesD3FillLightBrightness" to FILL_LIGHT_BRIGHTNESS[fillIndex])
+
             // The switches are "is this drawn", the cvars are "skip it".
             cvars.add("r_skipSpecular" to "${invBit(ctx, SPECULAR_PREFIX, SPECULAR_DEFAULT)}")
             cvars.add("r_skipBump" to "${invBit(ctx, BUMP_PREFIX, BUMP_DEFAULT)}")
@@ -352,8 +399,10 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
         // The widget rows behind those cvars, shared by both dialogs.
         fun createImmediateGraphicsWidgets(activity: Activity, screenFraction: View, resolutionFilter: View,
-                                           shadows: View, specular: View, bump: View, ambient: View,
-                                           shaderAmbient: View, fpsCap: View, vsync: View, showFps: View)
+                                           shadows: View, softShadows: View, shadowMapQuality: View,
+                                           specular: View, bump: View, ambient: View,
+                                           shaderAmbient: View, fillLight: View,
+                                           fpsCap: View, vsync: View, showFps: View)
         {
             val fractionItems = SCREEN_FRACTIONS.map { Pair<String, View?>("$it%", null) }.toTypedArray()
             val fractionSpinner = SpinnerWidget(
@@ -386,9 +435,33 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
             SwitchWidget(
                 activity, shadows, "Shadows",
-                "Stencil shadow volumes. Turning them off is a big speed-up.",
+                "Shadows from lights. Turning them off is a big speed-up.",
                 SHADOWS_PREFIX, SHADOWS_DEFAULT, R.drawable.setting_lightbulb
             )
+
+            val softShadowsSwitch = SwitchWidget(
+                activity, softShadows, "Soft shadows",
+                "Smooth-edged shadow maps instead of hard-edged shadows.",
+                SOFT_SHADOWS_PREFIX, SOFT_SHADOWS_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            val qualityItems = SHADOW_MAP_QUALITY_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
+            SpinnerWidget(
+                activity, shadowMapQuality, "Soft shadow quality",
+                "Shadow map resolution. Higher is sharper and keeps soft shadows on bigger lights, but uses much more video memory (about 12MB, 48MB, 192MB).",
+                qualityItems, SHADOW_MAP_QUALITY_PREFIX, SHADOW_MAP_QUALITY_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            // Quality only means something with soft shadows on; grey it rather
+            // than hide it, as with the upscale filter.
+            val qualityBinding = WidgetViewSpinnerBinding.bind(shadowMapQuality)
+            fun applyQualityEnabled(enabled: Boolean)
+            {
+                qualityBinding.spinner.isEnabled = enabled
+                qualityBinding.root.alpha = if (enabled) 1.0f else 0.4f
+            }
+            applyQualityEnabled(SwitchWidget.fetchValue(activity, SOFT_SHADOWS_PREFIX, SOFT_SHADOWS_DEFAULT))
+            softShadowsSwitch.callback = { enabled -> applyQualityEnabled(enabled) }
 
             SwitchWidget(
                 activity, specular, "Specular",
@@ -410,8 +483,15 @@ class EngineOptionsQuake4 : EngineOptionsInterface
 
             SwitchWidget(
                 activity, shaderAmbient, "Shader effects",
-                "Heat haze on glass and explosions, and similar shader-program stages. Off also skips the full-screen copy they need, so it saves more than the effects themselves cost.",
+                "Heat haze on glass and explosions, moving liquid in tanks, blood pools and lit bullet holes. Off also skips the full-screen copy they need, so it saves more than the effects themselves cost.",
                 SHADER_AMBIENT_PREFIX, SHADER_AMBIENT_DEFAULT, R.drawable.setting_lightbulb
+            )
+
+            val fillItems = FILL_LIGHT_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()
+            SpinnerWidget(
+                activity, fillLight, "Fill light",
+                "Adds a soft light to every surface so dark areas are never pitch black, like other Android ports. Off is how Quake 4 originally looks.",
+                fillItems, FILL_LIGHT_PREFIX, FILL_LIGHT_DEFAULT, R.drawable.setting_lightbulb
             )
 
             val fpsCapItems = FPS_CAP_LABELS.map { Pair<String, View?>(it, null) }.toTypedArray()

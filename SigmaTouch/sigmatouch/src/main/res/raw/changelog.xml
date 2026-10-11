@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="1.4.2" changeDate="11 October 2026">
+        <changelogtext>Quake 4: Bullet holes and scorch marks now appear on walls</changelogtext>
+        <changelogtext>Quake 4: Quake 4's own shader effects now work: lit bullet holes, moving liquid in tanks, blood pools and energy shields</changelogtext>
+        <changelogtext>Quake 4: Fix weapon depth</changelogtext>
+        <changelogtext>Quake 4: The Brightness option now works</changelogtext>
+        <changelogtext>Quake 4: New 'Soft shadows' option, with a quality setting: smooth-edged shadows on most lights</changelogtext>
+        <changelogtext>Quake 4: New 'Fill light' option for the brighter look of other Android ports</changelogtext>
+        <changelogtext>Quake 4: CPU usage optimisation</changelogtext>
+        <changelogtext>Far Cry: Fixed some lamp glows showing as solid white circles (end of the Cooler level)</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="1.4.1" changeDate="9 October 2026">
         <changelogtext>Far Cry: Fixed explosions and other loud sounds being very quiet</changelogtext>
         <changelogtext>Far Cry: New 'Vegetation 3D distance' option (1x, 2x, 4x, Infinite) to stop distant trees changing shape</changelogtext>

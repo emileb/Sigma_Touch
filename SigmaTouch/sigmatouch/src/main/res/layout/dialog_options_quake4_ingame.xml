@@ -45,6 +45,14 @@
                 layout="@layout/widget_view_switch" />
 
             <include
+                android:id="@+id/soft_shadows_switch"
+                layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/shadow_map_quality_spinner"
+                layout="@layout/widget_view_spinner" />
+
+            <include
                 android:id="@+id/specular_switch"
                 layout="@layout/widget_view_switch" />
 
@@ -59,6 +67,10 @@
             <include
                 android:id="@+id/shader_ambient_switch"
                 layout="@layout/widget_view_switch" />
+
+            <include
+                android:id="@+id/fill_light_spinner"
+                layout="@layout/widget_view_spinner" />
 
             <include
                 android:id="@+id/fps_cap_spinner"

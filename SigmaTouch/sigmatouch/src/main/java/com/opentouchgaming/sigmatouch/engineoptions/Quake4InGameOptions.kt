@@ -44,9 +44,10 @@ class Quake4InGameOptions : InGameOptionsInterface
 
         EngineOptionsQuake4.createImmediateGraphicsWidgets(
             activity, binding.screenFractionSpinner.root, binding.resolutionScaleFilterSpinner.root,
-            binding.shadowsSwitch.root, binding.specularSwitch.root, binding.bumpSwitch.root,
-            binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fpsCapSpinner.root,
-            binding.vsyncSwitch.root, binding.showFpsSwitch.root
+            binding.shadowsSwitch.root, binding.softShadowsSwitch.root, binding.shadowMapQualitySpinner.root,
+            binding.specularSwitch.root, binding.bumpSwitch.root,
+            binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fillLightSpinner.root,
+            binding.fpsCapSpinner.root, binding.vsyncSwitch.root, binding.showFpsSwitch.root
         )
 
         // The resolution pair is always the app's to send; the rest only while
