@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. Guidance shared by all the OpenTouch apps (architecture, native build model, conventions, the engine porting guide) is in the parent `../CLAUDE.md`, which loads automatically.
 
 ## Project Overview
 
@@ -11,8 +11,7 @@ Sigma Touch is an Android app that ports PC games to touch devices, built on the
 - **Languages:** Java + Kotlin (app), C/C++ (native libs)
 - **NDK:** 24.0.8215888 · ABIs: `armeabi-v7a`, `arm64-v8a`
 
-## Other Example apps
-There are other apps located here, Delta Touch and Quad Touch. These have good examples of other features and ways of doing things: /Users/emilebelanger/Android/AndroidStudioProjects/OpenTouch. Psi Touch (a sibling of this repo) is the closest reference and shows how TheForceEngine and OpenJK are wired in.
+Psi Touch (`../Psi_Touch`) is the closest sibling reference.
 
 ## Repository Layout
 
@@ -52,11 +51,9 @@ Run from `SigmaTouch/`:
 
 Verify a flip with `mergeDebugAssets` / `mergeDebugNativeLibs` and look at `sigmatouch/build/intermediates/` rather than unpacking an APK.
 
-Command-line builds need a JDK ≤ 21 — the system default may be newer and breaks Gradle 8.13 ("Unsupported class file major version"). Use Android Studio's JBR: `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew ...`
-
 ### Native build model
 
-`src/main/jni/Android.mk` builds SDL2, touchcontrols, gl4es, audio libs, SAFFAL, etc. into `src/main/libs/<abi>/*.so` via `ndk-build`. The app module's own `externalNativeBuild` points at `Android_dummy.mk` (empty) on purpose, so Gradle does not rebuild these automatically — rebuild them with `ndk-build` against `Android.mk` when the underlying submodules change. Engine modules (`:Unreal`) build through CMake and link against these prebuilt `.so`s. The current ones were built with NDK 27.3, not the Gradle NDK 24 (mixing NDK 24 into its leftover `obj/` objects fails to link libc++). **Never install a single module into `libs/`:** with `APP_MODULES=<one module>`, ndk-build deletes every other `.so` it finds in `libs/<abi>`. Build with `NDK_LIBS_OUT=<scratch dir>` and copy just that library in. (If it happens anyway, `sigmatouch/build/intermediates/merged_jni_libs/*/out/<abi>/` keeps a copy of the last `libs/` the APK was built from.)
+Follows the shared model in `../CLAUDE.md`. The prebuilt `.so`s in `src/main/libs/` were built with NDK 27.3, not the Gradle NDK 24 (mixing NDK 24 into its leftover `obj/` objects fails to link libc++).
 
 ## Architecture
 
@@ -86,7 +83,7 @@ Each engine's detailed notes — every Android-specific patch, the reasoning beh
 | Unreal (UE1 v200) | `:Unreal` | `/OpenTouch/Sigma/UE1` | Verified running on-device — menu, gameplay, audio, resolution, HUD scale all working | [`docs/engines/ue1.md`](docs/engines/ue1.md) |
 | Unreal Tournament (UE1 v400) | `:UT99` | `/OpenTouch/Sigma/UT99` | Phase 2 well advanced — boots, mouse-navigable menu, audio, gameplay input implemented | [`docs/engines/ut99.md`](docs/engines/ut99.md) |
 | Aliens vs Predator (NakedAVP) | `:AVP` | `/OpenTouch/Sigma/AVP` | Phase 2 — runs on-device (primary storage), menus and gameplay input working, Smacker plot FMVs and Bink intros/outros/menu-backdrop/music implemented | [`docs/engines/avp.md`](docs/engines/avp.md) |
-| Quake 4 (openQ4) | `:Quake4` | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input goes in by usercmd action, lightly played. **Behind the `includeQuake4` build switch** — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
+| Quake 4 (openQ4) | `:Quake4` (0.13.2), `:Quake4Dev` ('dev', openQ4 0.14.1) | `/OpenTouch/Sigma/Quake4` | Renders in-game 3D on-device through the ES 3.0 backend, pointer-driven menus, touch overlay working; gameplay input goes in by usercmd action, lightly played. Two versions in one APK, picked with the version button; dev also plays The Awakening (alpha) and runs on device. **Behind the `includeQuake4` build switch** (covers both modules) — see [Build Commands](#build-commands) | [`docs/engines/quake4.md`](docs/engines/quake4.md) |
 | Far Cry (NearChuckle) | `:FarCry` | `/OpenTouch/Sigma/FarCry` | Phase 2 done — plays by touch on-device through its own ES 3.0 renderer (sticks, swipe look, actions by name, menu/game overlay switching, user files under `user_files/farcry/`); played through Training and the start of Pier (machine gun, sniper, checkpoint reload). Behind the `includeFarCry` build switch (same shape as `includeQuake4`) | [`docs/engines/farcry.md`](docs/engines/farcry.md) |
 
 Key facts that affect work outside any single engine:
@@ -96,7 +93,7 @@ Key facts that affect work outside any single engine:
 - **`:Quake4` is the arm64-only engine; it and `:FarCry` are the ones that ship more than one `.so`.** Far Cry builds both ABIs since 2026-10-01 (32-bit arm uses the engine's 64-bit Linux configuration; see [`docs/engines/farcry.md`](docs/engines/farcry.md)). Quake 4 builds `libquake4.so` plus two modules the engine `dlopen()`s at runtime (`librenderer-gles_arm64.so`, `libgame-sp_arm64.so`), mirroring openQ4's own desktop layout; Far Cry builds `libfarcry.so` plus fifteen `libCry*.so`/`libXRenderGLES.so` modules loaded by name through `MODULE_PATH` (see [`docs/engines/farcry.md`](docs/engines/farcry.md)). It is also the only engine whose source of truth is Meson — its Android `CMakeLists.txt` reuses openQ4's own source-list scripts so the two builds cannot drift. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
 - **`:AVP` is the only engine using gl4es**; the two UE1-family engines have real GLES renderers of their own.
 - **`:AVP` is the only engine linking the shared FFmpeg prebuilts** (`Clibs_OpenTouch/ffmpeg`, static + PIC), for Bink video/audio. Those prebuilts are shared with q2repro in Delta/Quad Touch, so rebuilding them affects those apps too — see [`docs/engines/avp.md`](docs/engines/avp.md) for the recipe.
-- Engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`, `openQ4`, `NearChuckle`); AVP's, openQ4's and NearChuckle's are SSH remotes. openQ4's Android work now sits on its **`android-gles`** branch (upstream adapted this fork's port onto openQ4 0.13.1 and publishes it under that name), and its companion game-library repo `openQ4-game` is a second submodule on a matching `android-gles` branch pinned to the revision that integration requires. See [`docs/engines/quake4.md`](docs/engines/quake4.md).
+- Engine checkouts are submodules of forks under `emileb/` (`UE1`, `ut99dc`, `NakedAVP`, `openQ4`, `NearChuckle`); AVP's, openQ4's and NearChuckle's are SSH remotes. openQ4's GLES/macOS work sits on its **`main_gles`** branch, and the submodule tracks **`main_gles_android`**, which is the Android commits rebased on top of `main_gles`. Its companion game-library repo `openQ4-game` is a second submodule. The 'dev' version's own `openQ4` submodule (under `Games/Quake4Dev/`) tracks **`dev_gles_android`** (0.14.1, game code in-tree, no `openQ4-game`). See [`docs/engines/quake4.md`](docs/engines/quake4.md).
 
 ### Storage
 
@@ -104,19 +101,8 @@ Uses the OpenTouch storage model: legacy path `/OpenTouch/Sigma/` plus Android R
 
 ## Conventions & Gotchas
 
-- **Comments: keep them simple and concise.** Prefer a single short line explaining the *why*.
-- **ViewBinding is enabled** (`viewBinding true`).
-- **Glide is pinned to 4.16.0** and `constraintlayout` to `1.1.3` / `recyclerview` to `1.3.2` for Nvidia Shield TV + API 19 compatibility — do not upgrade without testing on those targets.
-- Native `.so` outputs in `src/main/libs/` are committed-elsewhere build artifacts; regenerate via `ndk-build` if a native submodule changes.
-- The Gradle configuration cache is enabled.
-- **`android.nonFinalResIds=true` must stay on.** With final IDs, Kotlin inlines `R.drawable.*` numbers and incremental builds can keep stale ones after resources are added — v1.4 shipped with wrong sub-game icons that way.
+Shared conventions (comments, ViewBinding, pinned dependencies, `nonFinalResIds`) are in `../CLAUDE.md`.
 
 ## Porting a new game engine
 
-These 'Touch' apps support multiple game engines. The full guide has been split out of this file:
-
-- [`docs/porting/phase1.md`](docs/porting/phase1.md) — Phase 1: get a new engine building and booting to its menu.
-- [`docs/porting/phase2.md`](docs/porting/phase2.md) — Phase 2: make it playable (real input, touch controls, user-file redirection, audio, resolution).
-- [`docs/porting/gotchas.md`](docs/porting/gotchas.md) — cross-engine lessons learned (shader precision, SAF paths, threading, ...).
-
-UE1 is the concrete example behind nearly every item in those guides — see [`docs/engines/ue1.md`](docs/engines/ue1.md) for how each step played out in practice.
+The generic guide is shared by all apps in [`../docs/porting/`](../docs/porting/). UE1 is the running example behind it — see [`docs/engines/ue1.md`](docs/engines/ue1.md) for how each step played out in practice.

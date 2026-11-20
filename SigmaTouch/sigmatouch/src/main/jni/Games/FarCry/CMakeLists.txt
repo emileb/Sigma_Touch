@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
 project(farcry_builder)
 
+# NDK 27's clang defaults to C++17, which drops auto_ptr and 'register' the engine still uses.
+set(CMAKE_CXX_STANDARD 14)
+
 # NearChuckle is an SDL3 engine (like :AVP and :Quake4), so it uses the SDL-3.x
 # checkout and libSDL3.so built by ndk-build.
 set(SDL3_ANDROID_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../../SDL2_OpenTouch/SDL-3.x/include")

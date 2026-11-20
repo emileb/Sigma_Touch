@@ -1,10 +1,15 @@
 
-* Quake 4: New 'dev' version (openQ4 0.14.1), selectable beside 0.13.2, with its own settings, saves, options and touch controls
-* Quake 4 dev: Plays Quake 4: The Awakening (the unreleased expansion's alpha) when its q4xbase folder is beside q4base
-* Quake 4 dev: Switching campaigns, or to Arena, from the game's menu no longer leaves a black screen
-* Quake 4 dev: Loading screens no longer have smeared edges on wide screens
+v1.5
+* Quake 4: New 'dev' version (openQ4 0.14.1)
+* Quake 4 dev: Plays Quake 4: The Awakening
+* Quake 4 dev: Gamepad right stick moves the menu cursor, fire selects
+* Far Cry: The Brightness, Contrast and Gamma options now work
+* Far Cry: Pressing Apply in the Video options no longer closes the game
+* Far Cry: The # key on the touch keyboard now works in the console
+Updated to NDK 27
 
-#release 7
+
+v1.4.2
 * Quake 4: Bullet holes and scorch marks now appear on walls
 * Quake 4: Quake 4's own shader effects now work: lit bullet holes, moving liquid in tanks, blood pools and energy shields
 * Quake 4: Fix weapon depth
@@ -15,13 +20,13 @@
 * Far Cry: Fixed some lamp glows showing as solid white circles (end of the Cooler level)
 
 
-#release 6
+v1.4.1
 * Far Cry: Fixed explosions and other loud sounds being very quiet
 * Far Cry: New 'Vegetation 3D distance' option (1x, 2x, 4x, Infinite) to stop distant trees changing shape
 * Far Cry: Larger console text
 
 
-#release 5
+v1.4
 Far Cry is now a full release. What the port adds to the original game:
 * New OpenGL ES 3 renderer: every graphics setting up to 'Very High'
 * Runs on 64-bit and 32-bit ARM devices

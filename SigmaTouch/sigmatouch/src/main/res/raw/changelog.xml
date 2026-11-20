@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
+    <changelogversion versionName="1.5" changeDate="20 November 2026">
+        <changelogtext>Quake 4: New 'dev' version (openQ4 0.14.1)</changelogtext>
+        <changelogtext>Quake 4 dev: Plays Quake 4: The Awakening</changelogtext>
+        <changelogtext>Quake 4 dev: Gamepad right stick moves the menu cursor, fire selects</changelogtext>
+        <changelogtext>Far Cry: The Brightness, Contrast and Gamma options now work</changelogtext>
+        <changelogtext>Far Cry: Pressing Apply in the Video options no longer closes the game</changelogtext>
+        <changelogtext>Far Cry: The # key on the touch keyboard now works in the console</changelogtext>
+        <changelogtext>Updated to NDK 27</changelogtext>
+    </changelogversion>
+
     <changelogversion versionName="1.4.2" changeDate="11 October 2026">
         <changelogtext>Quake 4: Bullet holes and scorch marks now appear on walls</changelogtext>
         <changelogtext>Quake 4: Quake 4's own shader effects now work: lit bullet holes, moving liquid in tanks, blood pools and energy shields</changelogtext>
