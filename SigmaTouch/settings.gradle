@@ -61,6 +61,9 @@ project(':AVP').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Gam
 if (providers.gradleProperty('includeQuake4').getOrElse('true').toBoolean()) {
     include ':Quake4'
     project(':Quake4').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/Quake4")
+    // the 'dev' version (openQ4 0.14), shipped beside 0.13
+    include ':Quake4Dev'
+    project(':Quake4Dev').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/Quake4Dev")
 }
 
 if (providers.gradleProperty('includeFarCry').getOrElse('true').toBoolean()) {

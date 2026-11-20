@@ -1,4 +1,8 @@
 
+* Quake 4: New 'dev' version (openQ4 0.14.1), selectable beside 0.13.2, with its own settings, saves, options and touch controls
+* Quake 4 dev: Plays Quake 4: The Awakening (the unreleased expansion's alpha) when its q4xbase folder is beside q4base
+* Quake 4 dev: Switching campaigns, or to Arena, from the game's menu no longer leaves a black screen
+* Quake 4 dev: Loading screens no longer have smeared edges on wide screens
 
 #release 7
 * Quake 4: Bullet holes and scorch marks now appear on walls

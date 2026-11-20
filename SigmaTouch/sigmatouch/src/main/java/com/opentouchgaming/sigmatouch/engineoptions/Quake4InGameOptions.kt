@@ -10,13 +10,17 @@ import com.opentouchgaming.sigmatouch.R
 import com.opentouchgaming.sigmatouch.databinding.DialogOptionsQuake4IngameBinding
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4.Companion.GRAPHICS_SETTINGS_DEFAULT
 import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4.Companion.GRAPHICS_SETTINGS_PREFIX
+import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4.Companion.key
 
 // Shown over the running game (in the :game process) by the overlay's settings
 // button. Only the cvars that take effect immediately are offered; on dismiss
 // they are pushed to the engine console, and the shared prefs keep the next
 // launch's +set args in step.
-class Quake4InGameOptions : InGameOptionsInterface
+open class Quake4InGameOptions : InGameOptionsInterface
 {
+    // which version's settings this edits; created by reflection, so no constructor args
+    open val version = 0
+
     override fun showDialog(activity: Activity, sender: InGameOptionsInterface.CommandSender)
     {
         val binding = DialogOptionsQuake4IngameBinding.inflate(activity.layoutInflater)
@@ -31,19 +35,19 @@ class Quake4InGameOptions : InGameOptionsInterface
         val graphicsSwitch = SwitchWidget(
             activity, binding.graphicsSettingsSwitch.root, "Use these graphics settings",
             "Enable/Disable seting gfx settings in command line",
-            GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT, R.drawable.setting_gpu
+            key(GRAPHICS_SETTINGS_PREFIX, version), GRAPHICS_SETTINGS_DEFAULT, R.drawable.setting_gpu
         )
 
         // Set before the dialog is shown, so the initial state does not animate
         binding.graphicsSettingsGroup.visibility =
-            if (SwitchWidget.fetchValue(activity, GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT)) View.VISIBLE else View.GONE
+            if (SwitchWidget.fetchValue(activity, key(GRAPHICS_SETTINGS_PREFIX, version), GRAPHICS_SETTINGS_DEFAULT)) View.VISIBLE else View.GONE
 
         graphicsSwitch.callback = { enabled ->
             binding.graphicsSettingsGroup.visibility = if (enabled) View.VISIBLE else View.GONE
         }
 
         EngineOptionsQuake4.createImmediateGraphicsWidgets(
-            activity, binding.screenFractionSpinner.root, binding.resolutionScaleFilterSpinner.root,
+            activity, version, binding.screenFractionSpinner.root, binding.resolutionScaleFilterSpinner.root,
             binding.shadowsSwitch.root, binding.softShadowsSwitch.root, binding.shadowMapQualitySpinner.root,
             binding.specularSwitch.root, binding.bumpSwitch.root,
             binding.ambientSwitch.root, binding.shaderAmbientSwitch.root, binding.fillLightSpinner.root,
@@ -53,16 +57,22 @@ class Quake4InGameOptions : InGameOptionsInterface
         // The resolution pair is always the app's to send; the rest only while
         // the master switch says the app owns them, matching launch.
         dialog.setOnDismissListener {
-            for ((name, value) in EngineOptionsQuake4.resolutionScaleCvars(activity))
+            for ((name, value) in EngineOptionsQuake4.resolutionScaleCvars(activity, version))
                 sender.send("set $name $value")
 
-            if (SwitchWidget.fetchValue(activity, GRAPHICS_SETTINGS_PREFIX, GRAPHICS_SETTINGS_DEFAULT))
+            if (SwitchWidget.fetchValue(activity, key(GRAPHICS_SETTINGS_PREFIX, version), GRAPHICS_SETTINGS_DEFAULT))
             {
-                for ((name, value) in EngineOptionsQuake4.immediateGraphicsCvars(activity))
+                for ((name, value) in EngineOptionsQuake4.immediateGraphicsCvars(activity, version))
                     sender.send("set $name $value")
             }
         }
 
         dialog.show()
     }
+}
+
+// The 'dev' version's dialog: same widgets, quake4_dev_* settings.
+class Quake4DevInGameOptions : Quake4InGameOptions()
+{
+    override val version = EngineOptionsQuake4.DEV_VERSION
 }

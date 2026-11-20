@@ -151,10 +151,12 @@ public class EntryActivity extends FragmentActivity
                                        "openQ4",
                                        "quake4",
                                        "",
-                                       new String[]{"0.13.2"},
+                                       // dev is openQ4 0.14 (:Quake4Dev), its .so files suffixed _dev
+                                       new String[]{"0.13.2", "dev"},
                                        // libquake4.so dlopen()s librenderer-gles_arm64.so and
                                        // libgame-sp_arm64.so itself, so they are not listed here.
-                                       new String[][]{{"oboe", "openal-soft", "quake4"}},
+                                       new String[][]{{"oboe", "openal-soft", "quake4"},
+                                                      {"oboe", "openal-soft", "quake4_dev"}},
                                        "",
                                        GamepadDefinitions.getDefinition(AppInfo.Apps.SIGMA_TOUCH),
                                        R.drawable.quake4_icon,
@@ -217,7 +219,10 @@ public class EntryActivity extends FragmentActivity
         userFiles.add(new UserFilesDialog.UserFileEntryDescription("Aliens vs Predator", "dev", R.drawable.avp_icon, "avp"));
 
         if (BuildConfig.INCLUDE_QUAKE4)
-            userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quake 4", "dev", R.drawable.quake4_icon, "quake4"));
+        {
+            userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quake 4", "0.13.2", R.drawable.quake4_icon, EngineOptionsQuake4.USER_DIR_NAME));
+            userFiles.add(new UserFilesDialog.UserFileEntryDescription("Quake 4", "dev", R.drawable.quake4_icon, EngineOptionsQuake4.USER_DIR_NAME_DEV));
+        }
 
         if (BuildConfig.INCLUDE_FARCRY)
             userFiles.add(new UserFilesDialog.UserFileEntryDescription("Far Cry", "dev", R.drawable.farcry_icon, "farcry"));

@@ -3,11 +3,13 @@ package com.opentouchgaming.sigmatouch
 import android.app.Activity
 import androidx.core.util.Pair
 import com.opentouchgaming.androidcore.AppInfo
+import com.opentouchgaming.androidcore.AppSettings
 import com.opentouchgaming.androidcore.DebugLog
 import com.opentouchgaming.androidcore.GameEngine
 import com.opentouchgaming.androidcore.SubGame
 import com.opentouchgaming.androidcore.Utils
 import com.opentouchgaming.androidcore.common.GameLauncherInterface
+import com.opentouchgaming.sigmatouch.engineoptions.EngineOptionsQuake4
 import java.io.File
 import java.util.ArrayList
 
@@ -39,6 +41,16 @@ class Quake4Launcher : GameLauncherInterface
                 "Copy your Quake 4 'q4base' folder to: ",
                 "Put your Quake 4 q4base folder here.txt")
 
+        // only openQ4 0.14+ plays the expansion alpha
+        if (selectedVersion(AppInfo.getContext()) == EngineOptionsQuake4.DEV_VERSION)
+        {
+            SubGame.addGame(availableSubGames, runDirectory, secondaryDirectory, AWAKENING_TAG, "", GAME_AWAKENING, WEAPON_WHEEL_NBR,
+                    arrayOf("q4base/pak001.pk4", "q4xbase/maps/game/m01_stranarus_trench1.map"), R.drawable.quake4_icon,
+                    "Quake 4: The Awakening (alpha)",
+                    "Copy the Awakening 'q4xbase' folder next to 'q4base' in: ",
+                    "Put your Quake 4 q4base folder here.txt")
+        }
+
         for (game in availableSubGames)
         {
             if (game.getName() != null && game.getRootPath() != null)
@@ -62,7 +74,9 @@ class Quake4Launcher : GameLauncherInterface
 
     override fun getQuickCommandsDirectory(subGame: SubGame): Pair<String, String>
     {
-        val commonPath = AppInfo.getQuickCommandsPath() + "/" + SUB_DIR
+        // dev keeps its own quick commands, like its other controls
+        val dev = selectedVersion(AppInfo.getContext()) == EngineOptionsQuake4.DEV_VERSION
+        val commonPath = AppInfo.getQuickCommandsPath() + "/" + SUB_DIR + (if (dev) "_dev" else "")
         val modPath = commonPath + "/" + subGame.name
         return Pair(commonPath, modPath)
     }
@@ -78,14 +92,25 @@ class Quake4Launcher : GameLauncherInterface
             args += " +set fs_basepath " + Utils.quoteString(subGame.rootPath)
         }
 
+        // si_gameType lets the startup filesystem mount q4xbase, so no engine reload is needed
+        if (subGame.gameType == GAME_AWAKENING)
+        {
+            args += " +set si_gameType singleplayer +set com_nextGameModule game_sp +set fs_game q4xbase"
+        }
+
         return args
     }
 
     override fun checkForDownloads(activity: Activity, engine: GameEngine, subGame: SubGame): Boolean
     {
-        stageRuntimePaks(activity)
+        val version = selectedVersion(activity)
+        stageRuntimePaks(activity, if (version == EngineOptionsQuake4.DEV_VERSION) DEV_PAKS else RELEASE_PAKS)
         return false
     }
+
+    // the version MainFragment last selected for this engine
+    private fun selectedVersion(context: android.content.Context) =
+        AppSettings.getIntOption(context, "last_version_" + GameEngine.Engine.QUAKE4.toString(), 0)
 
     // openQ4's own content packs travel in the APK and are unpacked next to the
     // player's retail data. The engine compiles their MD5s in and fatal-errors
@@ -94,7 +119,9 @@ class Quake4Launcher : GameLauncherInterface
     // rewritten whenever the app has been installed or updated since the last
     // staging, which covers a rebuild during development just as well as a
     // store update, and costs one small file read on every other launch.
-    private fun stageRuntimePaks(activity: Activity)
+    // Both versions use the same baseoq4 folder, so the stamp names the version
+    // too and switching re-stages: each engine bakes in its own packs' MD5s.
+    private fun stageRuntimePaks(activity: Activity, paks: PakSet)
     {
         // Always primary, even when the retail data was found on the secondary
         // volume: the app can always write here, which is not true of removable
@@ -105,7 +132,7 @@ class Quake4Launcher : GameLauncherInterface
         val installedAt = try
         {
             val info = activity.packageManager.getPackageInfo(activity.packageName, 0)
-            "${info.lastUpdateTime}"
+            "${paks.assetDir}:${info.lastUpdateTime}"
         }
         catch (e: Exception)
         {
@@ -113,31 +140,38 @@ class Quake4Launcher : GameLauncherInterface
             ""
         }
 
-        // Any failure reading the stamp means "stage again": re-copying 7MB is
-        // cheap, and skipping it wrongly stops the game booting.
+        // Any failure reading the stamp means "stage again": re-copying the
+        // packs is cheap, and skipping it wrongly stops the game booting.
         val stampedAt = runCatching { if (stamp.exists()) stamp.readText().trim() else "" }.getOrDefault("")
 
         val alreadyStaged = installedAt.isNotEmpty() &&
                 stampedAt == installedAt &&
-                PAK_FILENAMES.all { File(destDir, it).length() > 0 }
+                paks.files.all { File(destDir, it).length() > 0 }
 
         if (alreadyStaged)
         {
             return
         }
 
-        log.log(DebugLog.Level.D, "staging openQ4 content packs into $destDir")
+        log.log(DebugLog.Level.D, "staging openQ4 content packs from ${paks.assetDir} into $destDir")
         destDir.mkdirs()
 
-        for (pak in PAK_FILENAMES)
+        // The engine mounts every pakN.pk4 in baseoq4, so the other version's
+        // extra pack (dev's pak2) must not be left behind.
+        destDir.listFiles()?.filter { it.name.matches(PAK_NAME_PATTERN) && it.name !in paks.files }?.forEach {
+            log.log(DebugLog.Level.D, "removing ${it.name}, not part of ${paks.assetDir}")
+            it.delete()
+        }
+
+        for (pak in paks.files)
         {
-            Utils.copyAsset(activity, "$ASSET_DIR/$pak", destDir.absolutePath, pak)
+            Utils.copyAsset(activity, "${paks.assetDir}/$pak", destDir.absolutePath, pak)
         }
 
         // copyAsset logs and swallows its own IO errors, so confirm the result
         // rather than recording a success that did not happen. Leaving the
         // stamp absent means the next launch tries again.
-        val staged = PAK_FILENAMES.all { File(destDir, it).length() > 0 }
+        val staged = paks.files.all { File(destDir, it).length() > 0 }
         if (staged && installedAt.isNotEmpty())
         {
             runCatching { stamp.writeText(installedAt) }
@@ -148,21 +182,27 @@ class Quake4Launcher : GameLauncherInterface
         }
     }
 
+    // assetDir is where the module's CMake build staged them (OPENQ4_PAK_ASSET_DIR).
+    class PakSet(val assetDir: String, val files: Array<String>)
+
     companion object
     {
         // Where the engine expects its own packs, relative to fs_basepath.
         private const val GAME_DIR = "baseoq4"
 
-        // Written by the Quake4 CMake build via OPENQ4_PAK_ASSET_DIR.
-        private const val ASSET_DIR = "quake4"
-
         // mod.json belongs here as much as the packs do: the engine refuses to
         // start when fs_game is its own game dir and the manifest is missing or
         // its requiredopenQ4Version does not match, which is the same fatal
-        // error a stale pack produces. All three are written by the same CMake
+        // error a stale pack produces. They are all written by the same CMake
         // configure pass, so they are only ever consistent as a set.
-        private val PAK_FILENAMES = arrayOf("pak0.pk4", "pak1.pk4", "mod.json")
+        private val RELEASE_PAKS = PakSet("quake4", arrayOf("pak0.pk4", "pak1.pk4", "mod.json"))
+        private val DEV_PAKS = PakSet("quake4dev", arrayOf("pak0.pk4", "pak1.pk4", "pak2.pk4", "mod.json"))
+
+        private val PAK_NAME_PATTERN = Regex("pak[0-9]\\.pk4", RegexOption.IGNORE_CASE)
 
         private const val STAGE_STAMP_FILENAME = ".staged"
+
+        const val GAME_AWAKENING = 1
+        private const val AWAKENING_TAG = "Q4X"
     }
 }
