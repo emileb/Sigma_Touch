@@ -6,6 +6,7 @@ apply plugin: 'kotlin-android'
 // baseoq4 assets, and (via BuildConfig) its entry in the launcher.
 def includeQuake4 = (project.findProperty('includeQuake4') ?: 'true').toBoolean()
 def includeFarCry = (project.findProperty('includeFarCry') ?: 'true').toBoolean()
+def includeUT2004 = (project.findProperty('includeUT2004') ?: 'true').toBoolean()
 
 android {
     ndkVersion '27.3.13750724'
@@ -28,6 +29,7 @@ android {
 
         buildConfigField "boolean", "INCLUDE_QUAKE4", "${includeQuake4}"
         buildConfigField "boolean", "INCLUDE_FARCRY", "${includeFarCry}"
+        buildConfigField "boolean", "INCLUDE_UT2004", "${includeUT2004}"
     }
 
     compileOptions {
@@ -87,6 +89,7 @@ dependencies {
     if (includeQuake4) implementation(project(":Quake4"))
     if (includeQuake4) implementation(project(":Quake4Dev"))
     if (includeFarCry) implementation(project(":FarCry"))
+    if (includeUT2004) implementation(project(":UT2004"))
 
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'com.google.code.gson:gson:2.13.2'

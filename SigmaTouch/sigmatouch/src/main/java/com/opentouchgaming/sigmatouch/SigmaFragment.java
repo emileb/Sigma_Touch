@@ -36,6 +36,8 @@ public class SigmaFragment extends MainFragment
 
     FarCryLauncher farCryLauncher;
 
+    UT2004Launcher ut2004Launcher;
+
     public SigmaFragment()
     {
         super();
@@ -54,6 +56,7 @@ public class SigmaFragment extends MainFragment
         avpLauncher = new AVPLauncher();
         quake4Launcher = new Quake4Launcher();
         farCryLauncher = new FarCryLauncher();
+        ut2004Launcher = new UT2004Launcher();
     }
 
     public void setLauncher()
@@ -74,6 +77,9 @@ public class SigmaFragment extends MainFragment
                 break;
             case FARCRY:
                 launcher = farCryLauncher;
+                break;
+            case UT2004:
+                launcher = ut2004Launcher;
                 break;
         }
     }

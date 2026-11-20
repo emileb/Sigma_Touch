@@ -70,3 +70,8 @@ if (providers.gradleProperty('includeFarCry').getOrElse('true').toBoolean()) {
     include ':FarCry'
     project(':FarCry').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/FarCry")
 }
+
+if (providers.gradleProperty('includeUT2004').getOrElse('true').toBoolean()) {
+    include ':UT2004'
+    project(':UT2004').projectDir = new File(settingsDir, "/sigmatouch/src/main/jni/Games/UT2004")
+}
