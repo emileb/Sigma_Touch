@@ -44,9 +44,13 @@ class Quake4Launcher : GameLauncherInterface
         // only openQ4 0.14+ plays the expansion alpha
         if (selectedVersion(AppInfo.getContext()) == EngineOptionsQuake4.DEV_VERSION)
         {
+            // The alpha comes as loose files or packed into pk4s
+            val looseMap = arrayOf("q4base/pak001.pk4", "q4xbase/maps/game/m01_stranarus_trench1.map")
+            val files = if (Utils.checkFilesInPaths(runDirectory, secondaryDirectory, looseMap) != null) looseMap
+                        else arrayOf("q4base/pak001.pk4", "q4xbase/pak0.pk4")
             SubGame.addGame(availableSubGames, runDirectory, secondaryDirectory, AWAKENING_TAG, "", GAME_AWAKENING, WEAPON_WHEEL_NBR,
-                    arrayOf("q4base/pak001.pk4", "q4xbase/maps/game/m01_stranarus_trench1.map"), R.drawable.quake4_icon,
-                    "Quake 4: The Awakening (alpha)",
+                    files, R.drawable.quake4_icon,
+                    "Quake 4: The Awakening",
                     "Copy the Awakening 'q4xbase' folder next to 'q4base' in: ",
                     "Put your Quake 4 q4base folder here.txt")
         }
