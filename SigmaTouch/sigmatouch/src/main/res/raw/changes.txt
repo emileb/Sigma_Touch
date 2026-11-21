@@ -7,10 +7,12 @@ v1.5
 * Quake 4: New 'dev' version (openQ4 0.14.1)
 * Quake 4 dev: Plays Quake 4: The Awakening
 * Quake 4 dev: Gamepad right stick moves the menu cursor, fire selects
+* Added 'Faster loading from storage folder' option to the launcher settings
 * Far Cry: The Brightness, Contrast and Gamma options now work
 * Far Cry: Pressing Apply in the Video options no longer closes the game
 * Far Cry: The # key on the touch keyboard now works in the console
 * Quake 4 dev: Touch control names shown in English instead of string codes
+* Improved reliability of games stored in the storage folder
 * Updated to NDK 27
 
 
