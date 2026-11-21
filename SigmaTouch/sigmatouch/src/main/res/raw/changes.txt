@@ -10,7 +10,8 @@ v1.5
 * Far Cry: The Brightness, Contrast and Gamma options now work
 * Far Cry: Pressing Apply in the Video options no longer closes the game
 * Far Cry: The # key on the touch keyboard now works in the console
-Updated to NDK 27
+* Quake 4 dev: Touch control names shown in English instead of string codes
+* Updated to NDK 27
 
 
 v1.4.2
